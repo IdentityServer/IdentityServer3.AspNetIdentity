@@ -64,12 +64,19 @@
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.identitymodel.services" />
     <Reference Include="System.Web" />
+    <Reference Include="Thinktecture.IdentityManager">
+      <HintPath>..\packages\Thinktecture.IdentityManager.1.0.0-alpha-1\lib\net45\Thinktecture.IdentityManager.dll</HintPath>
+    </Reference>
+    <Reference Include="Thinktecture.IdentityManager.AspNetIdentity">
+      <HintPath>..\packages\Thinktecture.IdentityManager.AspNetIdentity.1.0.0-alpha-1\lib\net45\Thinktecture.IdentityManager.AspNetIdentity.dll</HintPath>
+    </Reference>
     <Reference Include="Thinktecture.IdentityServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Thinktecture.IdentityServer.v3.1.0.0-alpha-20140721\lib\net45\Thinktecture.IdentityServer.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AspNetIdentityIdentityManagerFactory.cs" />
     <Compile Include="Config\Certificate.cs" />
     <Compile Include="Config\Clients.cs" />
     <Compile Include="Config\Factory.cs" />

@@ -1,13 +1,23 @@
 ﻿using Owin;
 using SelfHost.Config;
+using Thinktecture.IdentityManager;
 using Thinktecture.IdentityServer.Core.Configuration;
 
 namespace SelfHost
 {
     internal class Startup
     {
-        public void Configuration(IAppBuilder appBuilder)
+        public void Configuration(IAppBuilder app)
         {
+            app.Map("/admin", adminApp =>
+            {
+                var factory = new Thinktecture.IdentityManager.Host.AspNetIdentityIdentityManagerFactory("AspId");
+                adminApp.UseIdentityManager(new IdentityManagerConfiguration()
+                {
+                    IdentityManagerFactory = factory.Create
+                });
+            });
+
             var options = new IdentityServerOptions
             {
                 IssuerUri = "https://idsrv3.com",
@@ -18,7 +28,7 @@ namespace SelfHost
                 Factory = Factory.Configure("AspId"),
             };
 
-            appBuilder.UseIdentityServer(options);
+            app.UseIdentityServer(options);
         }
     }
 }
