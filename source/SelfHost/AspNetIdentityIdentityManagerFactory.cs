@@ -27,6 +27,10 @@ namespace Thinktecture.IdentityManager.Host
             var db = new IdentityDbContext<IdentityUser>(this.connString);
             var store = new UserStore<IdentityUser>(db);
             var mgr = new Microsoft.AspNet.Identity.UserManager<IdentityUser>(store);
+            mgr.PasswordValidator = new Microsoft.AspNet.Identity.PasswordValidator
+            {
+                RequiredLength = 3
+            };
             return new Thinktecture.IdentityManager.AspNetIdentity.IdentityManagerService<IdentityUser, string>(mgr, db);
 
             //var db = new CustomDbContext("CustomAspId");

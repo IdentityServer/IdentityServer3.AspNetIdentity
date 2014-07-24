@@ -22,6 +22,10 @@ namespace SelfHost
             var db = new IdentityDbContext<IdentityUser>(connString);
             var store = new UserStore<IdentityUser>(db);
             var mgr = new UserManager<IdentityUser>(store);
+            mgr.PasswordValidator = new PasswordValidator
+            {
+                RequiredLength = 3
+            };
             var userSvc = new UserService<IdentityUser, string>(mgr, db);
             return userSvc;
 
