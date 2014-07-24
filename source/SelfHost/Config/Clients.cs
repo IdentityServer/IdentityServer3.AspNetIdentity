@@ -39,6 +39,7 @@ namespace Thinktecture.IdentityServer.Host.Config
                         Constants.StandardScopes.OpenId,
                         Constants.StandardScopes.Profile,
                         Constants.StandardScopes.Email,
+                        Constants.StandardScopes.OfflineAccess,
                         "read",
                         "write"
                     },
@@ -125,6 +126,7 @@ namespace Thinktecture.IdentityServer.Host.Config
                     
                     ScopeRestrictions = new List<string>
                     { 
+                        Constants.StandardScopes.OfflineAccess,
                         "read",
                         "write"
                     },
