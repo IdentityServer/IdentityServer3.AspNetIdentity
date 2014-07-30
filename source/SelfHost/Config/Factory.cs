@@ -18,10 +18,10 @@ namespace SelfHost.Config
 
             factory.UserService = Registration<IUserService>.RegisterFactory(()=>AspNetIdentityUserServiceFactory.Factory(connString));
 
-            var scopeSvc = new InMemoryScopeService(Scopes.Get());
-            factory.ScopeService = Registration.RegisterFactory<IScopeService>(() => scopeSvc);
-            var clientSvc = new InMemoryClientService(Clients.Get());
-            factory.ClientService = Registration.RegisterFactory<IClientService>(() => clientSvc);
+            var scopeStore = new InMemoryScopeStore(Scopes.Get());
+            factory.ScopeStore = Registration.RegisterFactory<IScopeStore>(() => scopeStore);
+            var clientStore = new InMemoryClientStore(Clients.Get());
+            factory.ClientStore = Registration.RegisterFactory<IClientStore>(() => clientStore);
 
             return factory;
         }
