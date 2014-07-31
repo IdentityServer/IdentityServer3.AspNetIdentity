@@ -14,7 +14,7 @@ using Thinktecture.IdentityServer.Core.Services;
 
 namespace Thinktecture.IdentityServer.AspNetIdentity
 {
-    public class UserService<TUser, TKey> : IUserService, IDisposable
+    public class AspNetIdentityUserService<TUser, TKey> : IUserService, IDisposable
         where TUser : class, IUser<TKey>, new()
         where TKey : IEquatable<TKey>
     {
@@ -23,7 +23,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected readonly Func<string, TKey> ConvertSubjectToKey;
         
-        public UserService(UserManager<TUser, TKey> userManager, IDisposable cleanup)
+        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup)
         {
             if (userManager == null) throw new ArgumentNullException("userManager");
             

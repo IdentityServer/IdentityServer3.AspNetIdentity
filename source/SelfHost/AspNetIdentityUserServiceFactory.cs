@@ -26,7 +26,7 @@ namespace SelfHost
             {
                 RequiredLength = 3
             };
-            var userSvc = new UserService<IdentityUser, string>(mgr, db);
+            var userSvc = new AspNetIdentityUserService<IdentityUser, string>(mgr, db);
             return userSvc;
 
             //var db = new CustomDbContext("CustomAspId");
