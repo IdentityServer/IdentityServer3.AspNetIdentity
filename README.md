@@ -1,4 +1,4 @@
-# Thinktecture.IdentityServer.v3.AspNetIdentity #
+# Thinktecture IdentityServer v3 AspNetIdentity #
 
 ## Overview ##
 
