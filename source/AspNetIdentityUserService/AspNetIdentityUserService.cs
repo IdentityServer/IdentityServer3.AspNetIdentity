@@ -86,7 +86,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             var claims = await GetClaimsFromAccount(acct);
             if (requestedClaimTypes != null)
             {
-                claims = claims.Where(x => requestedClaimTypes.Contains(x.Type));
+                claims = claims.Where(x => requestedClaimTypes.Contains(x.Type)).ToList();
             }
             return claims;
         }
@@ -122,7 +122,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
             if (userManager.SupportsUserClaim)
             {
-                claims.AddRange(await userManager.GetClaimsAsync(user.Id));
+                claims.AddRange((await userManager.GetClaimsAsync(user.Id)).Where(x => x.Type != Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name));
             }
 
             if (userManager.SupportsUserRole)
