@@ -95,7 +95,6 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         {
             var claims = new List<Claim>{
                 new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Subject, user.Id.ToString()),
-                new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name, await GetDisplayNameForAccountAsync(user.Id)),
             };
 
             if (userManager.SupportsUserEmail)
@@ -122,7 +121,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
             if (userManager.SupportsUserClaim)
             {
-                claims.AddRange((await userManager.GetClaimsAsync(user.Id)).Where(x => x.Type != Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name));
+                claims.AddRange(await userManager.GetClaimsAsync(user.Id));
             }
 
             if (userManager.SupportsUserRole)
