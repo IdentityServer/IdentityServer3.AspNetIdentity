@@ -137,11 +137,14 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<string> GetDisplayNameForAccountAsync(TKey userID)
         {
-            var claims = await userManager.GetClaimsAsync(userID);
-            var nameClaim = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name);
-            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
-            if (nameClaim != null) return nameClaim.Value;
-
+            if (userManager.SupportsUserClaim)
+            {            
+                var claims = await userManager.GetClaimsAsync(userID);
+                var nameClaim = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name);
+                if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
+                if (nameClaim != null) return nameClaim.Value;
+            }
+            
             var user = await userManager.FindByIdAsync(userID);
             return user.UserName;
         }
