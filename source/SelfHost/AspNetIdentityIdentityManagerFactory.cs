@@ -1,8 +1,4 @@
 ﻿using Microsoft.AspNet.Identity.EntityFramework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using Thinktecture.IdentityManager.Core;
 
 namespace Thinktecture.IdentityManager.Host
@@ -13,7 +9,7 @@ namespace Thinktecture.IdentityManager.Host
         {
             System.Data.Entity.Database.SetInitializer(new System.Data.Entity.CreateDatabaseIfNotExists<IdentityDbContext>());
             
-            //System.Data.Entity.Database.SetInitializer(new System.Data.Entity.CreateDatabaseIfNotExists<CustomDbContext>());
+            //System.Data.Entity.Database.SetInitializer(new System.Data.Entity.CreateDatabaseIfNotExists<SelfHost.CustomDbContext>());
         }
 
         string connString;
@@ -33,10 +29,10 @@ namespace Thinktecture.IdentityManager.Host
             };
             return new Thinktecture.IdentityManager.AspNetIdentity.IdentityManagerService<IdentityUser, string>(mgr, db);
 
-            //var db = new CustomDbContext("CustomAspId");
-            //var store = new CustomUserStore(db);
-            //var mgr = new CustomUserManager(store);
-            //return new Thinktecture.IdentityManager.AspNetIdentity.UserManager<CustomUser, int, CustomUserLogin, CustomUserRole, CustomUserClaim>(mgr, db);
+            //var db = new SelfHost.CustomDbContext("CustomAspId");
+            //var store = new SelfHost.CustomUserStore(db);
+            //var mgr = new SelfHost.CustomUserManager(store);
+            //return new Thinktecture.IdentityManager.AspNetIdentity.IdentityManagerService<SelfHost.CustomUser, int>(mgr, db);
         }
     }
 }
