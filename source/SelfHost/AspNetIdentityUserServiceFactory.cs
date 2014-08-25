@@ -32,7 +32,7 @@ namespace SelfHost
             //var db = new CustomDbContext("CustomAspId");
             //var store = new CustomUserStore(db);
             //var mgr = new CustomUserManager(store);
-            //var userSvc = new UserService<CustomUser, int>(mgr, db);
+            //var userSvc = new AspNetIdentityUserService<CustomUser, int>(mgr, db);
             //return userSvc;
         }
     }
