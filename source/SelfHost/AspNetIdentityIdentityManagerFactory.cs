@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using Thinktecture.IdentityManager.Core;
+using Thinktecture.IdentityManager;
 
 namespace Thinktecture.IdentityManager.Host
 {
@@ -25,13 +25,18 @@ namespace Thinktecture.IdentityManager.Host
         public IIdentityManagerService Create()
         {
             var db = new IdentityDbContext<IdentityUser>(this.connString);
-            var store = new UserStore<IdentityUser>(db);
-            var mgr = new Microsoft.AspNet.Identity.UserManager<IdentityUser>(store);
-            mgr.PasswordValidator = new Microsoft.AspNet.Identity.PasswordValidator
+            var userstore = new UserStore<IdentityUser>(db);
+            var usermgr = new Microsoft.AspNet.Identity.UserManager<IdentityUser>(userstore);
+            usermgr.PasswordValidator = new Microsoft.AspNet.Identity.PasswordValidator
             {
                 RequiredLength = 3
             };
-            return new Thinktecture.IdentityManager.AspNetIdentity.IdentityManagerService<IdentityUser, string>(mgr, db);
+            var rolestore = new RoleStore<IdentityRole>(db);
+            var rolemgr = new Microsoft.AspNet.Identity.RoleManager<IdentityRole>(rolestore);
+
+            var svc = new Thinktecture.IdentityManager.AspNetIdentity.AspNetIdentityManagerService<IdentityUser, string, IdentityRole, string>(usermgr, rolemgr);
+            var dispose = new DisposableIdentityManagerService(svc, db);
+            return dispose;
 
             //var db = new CustomDbContext("CustomAspId");
             //var store = new CustomUserStore(db);
