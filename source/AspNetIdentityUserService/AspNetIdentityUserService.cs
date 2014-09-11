@@ -19,16 +19,14 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         where TKey : IEquatable<TKey>
     {
         protected readonly UserManager<TUser, TKey> userManager;
-        IDisposable cleanup;
 
         protected readonly Func<string, TKey> ConvertSubjectToKey;
         
-        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup)
+        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager)
         {
             if (userManager == null) throw new ArgumentNullException("userManager");
             
             this.userManager = userManager;
-            this.cleanup = cleanup;
 
             var keyType = typeof(TKey);
             if (keyType == typeof(string)) ConvertSubjectToKey = subject => (TKey)ParseString(subject);
@@ -66,11 +64,6 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         
         public virtual void Dispose()
         {
-            if (this.cleanup != null)
-            {
-                this.cleanup.Dispose();
-                this.cleanup = null;
-            }
         }
 
         public virtual async Task<IEnumerable<System.Security.Claims.Claim>> GetProfileDataAsync(string subject,

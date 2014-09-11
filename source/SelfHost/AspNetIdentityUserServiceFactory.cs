@@ -21,12 +21,13 @@ namespace SelfHost
         {
             var db = new IdentityDbContext<IdentityUser>(connString);
             var store = new UserStore<IdentityUser>(db);
+            store.DisposeContext = true;
             var mgr = new UserManager<IdentityUser>(store);
             mgr.PasswordValidator = new PasswordValidator
             {
                 RequiredLength = 3
             };
-            var userSvc = new AspNetIdentityUserService<IdentityUser, string>(mgr, db);
+            var userSvc = new AspNetIdentityUserService<IdentityUser, string>(mgr);
             return userSvc;
 
             //var db = new CustomDbContext("CustomAspId");
