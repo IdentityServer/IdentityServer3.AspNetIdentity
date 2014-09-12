@@ -64,6 +64,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         
         public virtual void Dispose()
         {
+            userManager.Dispose();
         }
 
         public virtual async Task<IEnumerable<System.Security.Claims.Claim>> GetProfileDataAsync(string subject,
