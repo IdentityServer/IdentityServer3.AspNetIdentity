@@ -29,10 +29,10 @@ namespace SelfHost
             var userSvc = new AspNetIdentityUserService<IdentityUser, string>(mgr, db);
             return userSvc;
 
-            //var db = new CustomDbContext("CustomAspId");
+            //var db = new CustomDbContext(connString);
             //var store = new CustomUserStore(db);
             //var mgr = new CustomUserManager(store);
-            //var userSvc = new UserService<CustomUser, int>(mgr, db);
+            //var userSvc = new AspNetIdentityUserService<CustomUser, int>(mgr, db);
             //return userSvc;
         }
     }
