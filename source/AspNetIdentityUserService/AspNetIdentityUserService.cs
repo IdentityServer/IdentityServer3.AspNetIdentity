@@ -189,7 +189,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return null;
         }
 
-        public virtual async Task<ExternalAuthenticateResult> AuthenticateExternalAsync(string subject, ExternalIdentity externalUser)
+        public virtual async Task<ExternalAuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser)
         {
             if (externalUser == null)
             {
