@@ -96,6 +96,9 @@
     <Compile Include="AspNetIdentityUserServiceFactory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\default.licenseheader">
+      <Link>default.licenseheader</Link>
+    </None>
     <None Include="App.config" />
     <EmbeddedResource Include="Config\idsrv3test.pfx" />
     <None Include="packages.config" />
