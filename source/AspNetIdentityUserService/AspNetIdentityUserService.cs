@@ -145,7 +145,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             {
                 var roleClaims =
                     from role in await userManager.GetRolesAsync(user.Id)
-                    select new Claim(ClaimTypes.Role, role);
+                    select new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Role, role);
                 claims.AddRange(roleClaims);
             }
 
