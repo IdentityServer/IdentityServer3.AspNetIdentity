@@ -209,7 +209,8 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<ExternalAuthenticateResult> ProcessNewExternalAccountAsync(string provider, string providerId, IEnumerable<Claim> claims)
         {
-            var user = new TUser { UserName = Guid.NewGuid().ToString("N") };
+            var user = new TUser ();
+            AccountCreatingFromExternalProviderAsync(user, providerId, claims);
             var createResult = await userManager.CreateAsync(user);
             if (!createResult.Succeeded)
             {
@@ -227,6 +228,11 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             if (result != null) return result;
 
             return await SignInFromExternalProviderAsync(user.Id, provider);
+        }
+
+        protected virtual void AccountCreatingFromExternalProviderAsync(TUser user, string providerId, IEnumerable<Claim> claims)
+        {
+            user.UserName = Guid.NewGuid().ToString("N");
         }
 
         protected virtual async Task<ExternalAuthenticateResult> AccountCreatedFromExternalProviderAsync(TKey userID, string provider, string providerId, IEnumerable<Claim> claims)
