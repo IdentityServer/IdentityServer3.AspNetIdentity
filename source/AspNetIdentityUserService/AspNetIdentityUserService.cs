@@ -168,7 +168,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message)
         {
-            if (!userManager.SupportsUserLogin)
+            if (!userManager.SupportsUserPassword)
             {
                 return null;
             }
