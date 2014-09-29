@@ -151,7 +151,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password)
         {
-            if (!userManager.SupportsUserLogin)
+            if (!userManager.SupportsUserPassword)
             {
                 return null;
             }
@@ -189,7 +189,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return null;
         }
 
-        public virtual async Task<ExternalAuthenticateResult> AuthenticateExternalAsync(string subject, ExternalIdentity externalUser)
+        public virtual async Task<ExternalAuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser)
         {
             if (externalUser == null)
             {
