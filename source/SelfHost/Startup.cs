@@ -9,9 +9,12 @@ namespace SelfHost
     {
         public void Configuration(IAppBuilder app)
         {
+            var connString = "AspId";
+            //var connString = "CustomAspId";
+
             app.Map("/admin", adminApp =>
             {
-                var factory = new Thinktecture.IdentityManager.Host.AspNetIdentityIdentityManagerFactory("AspId");
+                var factory = new AspNetIdentityIdentityManagerFactory(connString);
                 adminApp.UseIdentityManager(new IdentityManagerConfiguration()
                 {
                     IdentityManagerFactory = factory.Create
@@ -25,7 +28,7 @@ namespace SelfHost
                 PublicHostName = "http://localhost:3333",
 
                 SigningCertificate = Certificate.Get(),
-                Factory = Factory.Configure("AspId"),
+                Factory = Factory.Configure(connString),
                 CorsPolicy = CorsPolicy.AllowAll
             };
 
