@@ -25,6 +25,7 @@ using Thinktecture.IdentityServer.Core.Models;
 using Thinktecture.IdentityServer.Core.Services;
 using Thinktecture.IdentityServer.Core.Extensions;
 using Thinktecture.IdentityServer.Core.Plumbing;
+using Thinktecture.IdentityModel;
 
 namespace Thinktecture.IdentityServer.AspNetIdentity
 {
@@ -268,8 +269,8 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         protected virtual async Task<AuthenticateResult> UpdateAccountFromExternalClaimsAsync(TKey userID, string provider, string providerId, IEnumerable<Claim> claims)
         {
             var existingClaims = await userManager.GetClaimsAsync(userID);
-            var intersection = existingClaims.Intersect(claims, new Thinktecture.IdentityServer.Core.Plumbing.ClaimComparer());
-            var newClaims = claims.Except(intersection, new Thinktecture.IdentityServer.Core.Plumbing.ClaimComparer());
+            var intersection = existingClaims.Intersect(claims, new ClaimComparer());
+            var newClaims = claims.Except(intersection, new ClaimComparer());
 
             foreach (var claim in newClaims)
             {
@@ -351,7 +352,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return Thinktecture.IdentityServer.Core.Plumbing.ClaimMap.Map(incomingClaims);
         }
 
-        public async Task<bool> IsActive(ClaimsPrincipal subject)
+        public async Task<bool> IsActiveAsync(ClaimsPrincipal subject)
         {
             if (subject == null) throw new ArgumentNullException("subject");
 
