@@ -167,6 +167,11 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return user.UserName;
         }
 
+        public Task<AuthenticateResult> PreAuthenticateAsync(IDictionary<string, object> env, SignInMessage message)
+        {
+            return Task.FromResult<AuthenticateResult>(null);
+        }
+
         public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message)
         {
             if (!userManager.SupportsUserPassword)
@@ -215,14 +220,14 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 throw new ArgumentNullException("externalUser");
             }
 
-            var user = await userManager.FindAsync(new UserLoginInfo(externalUser.Provider.Name, externalUser.ProviderId));
+            var user = await userManager.FindAsync(new UserLoginInfo(externalUser.Provider, externalUser.ProviderId));
             if (user == null)
             {
-                return await ProcessNewExternalAccountAsync(externalUser.Provider.Name, externalUser.ProviderId, externalUser.Claims);
+                return await ProcessNewExternalAccountAsync(externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
             }
             else
             {
-                return await ProcessExistingExternalAccountAsync(user.Id, externalUser.Provider.Name, externalUser.ProviderId, externalUser.Claims);
+                return await ProcessExistingExternalAccountAsync(user.Id, externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
             }
         }
 
