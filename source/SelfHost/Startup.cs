@@ -40,13 +40,14 @@ namespace SelfHost
             {
                 IssuerUri = "https://idsrv3.com",
                 SiteName = "Thinktecture IdentityServer v3 - UserService-AspNetIdentity",
-                RequireSsl = false,
 
                 SigningCertificate = Certificate.Get(),
                 Factory = Factory.Configure("AspId"),
                 CorsPolicy = CorsPolicy.AllowAll,
-
-                AdditionalIdentityProviderConfiguration = ConfigureAdditionalIdentityProviders,
+                AuthenticationOptions = new AuthenticationOptions
+                {
+                    IdentityProviders = ConfigureAdditionalIdentityProviders,
+                }
             };
 
             app.UseIdentityServer(options);

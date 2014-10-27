@@ -20,12 +20,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Thinktecture.IdentityServer.Core.Authentication;
 using Thinktecture.IdentityServer.Core.Models;
 using Thinktecture.IdentityServer.Core.Services;
 using Thinktecture.IdentityServer.Core.Extensions;
-using Thinktecture.IdentityServer.Core.Plumbing;
 using Thinktecture.IdentityModel;
+using Thinktecture.IdentityServer.Core;
 
 namespace Thinktecture.IdentityServer.AspNetIdentity
 {
@@ -358,11 +357,6 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             }
             
             return claims;
-        }
-
-        protected virtual IEnumerable<Claim> NormalizeExternalClaimTypes(IEnumerable<Claim> incomingClaims)
-        {
-            return Thinktecture.IdentityServer.Core.Plumbing.ClaimMap.Map(incomingClaims);
         }
 
         public async Task<bool> IsActiveAsync(ClaimsPrincipal subject)
