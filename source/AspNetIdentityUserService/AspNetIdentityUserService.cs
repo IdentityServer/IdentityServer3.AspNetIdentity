@@ -171,6 +171,11 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return Task.FromResult<AuthenticateResult>(null);
         }
 
+        protected async virtual Task<TUser> FindUserAsync(string username)
+        {
+            return await userManager.FindByNameAsync(username);
+        }
+        
         public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message)
         {
             if (!userManager.SupportsUserPassword)
@@ -178,7 +183,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 return null;
             }
 
-            var user = await userManager.FindByNameAsync(username);
+            var user = await FindUserAsync(username);
             if (user == null)
             {
                 return null;
