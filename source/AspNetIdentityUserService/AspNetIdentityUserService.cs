@@ -37,7 +37,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected readonly Func<string, TKey> ConvertSubjectToKey;
         
-        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup)
+        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup = null)
         {
             if (userManager == null) throw new ArgumentNullException("userManager");
             
