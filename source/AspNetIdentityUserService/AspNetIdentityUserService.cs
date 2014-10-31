@@ -175,6 +175,20 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         {
             return await userManager.FindByNameAsync(username);
         }
+
+        protected virtual Task<AuthenticateResult> PostAuthenticateLocalAsync(TUser account, SignInMessage message)
+        {
+            //if (await userManager.GetTwoFactorEnabledAsync(userId) &&
+            //    !await AuthenticationManager.TwoFactorBrowserRememberedAsync(user.Id))
+            //{
+            //    var identity = new ClaimsIdentity(DefaultAuthenticationTypes.TwoFactorCookie);
+            //    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
+            //    AuthenticationManager.SignIn(identity);
+            //    return SignInStatus.RequiresTwoFactorAuthentication;
+            //}
+
+            return Task.FromResult<AuthenticateResult>(null);
+        }
         
         public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message)
         {
@@ -197,14 +211,9 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
             if (await userManager.CheckPasswordAsync(user, password))
             {
-                //if (await userManager.GetTwoFactorEnabledAsync(userId) &&
-                //    !await AuthenticationManager.TwoFactorBrowserRememberedAsync(user.Id))
-                //{
-                //    var identity = new ClaimsIdentity(DefaultAuthenticationTypes.TwoFactorCookie);
-                //    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
-                //    AuthenticationManager.SignIn(identity);
-                //    return SignInStatus.RequiresTwoFactorAuthentication;
-                //}
+
+                var result = await PostAuthenticateLocalAsync(user, message);
+                if (result != null) return result;
 
                 var p = IdentityServerPrincipal.Create(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id));
                 return new AuthenticateResult(p);
