@@ -166,7 +166,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return user.UserName;
         }
 
-        public Task<AuthenticateResult> PreAuthenticateAsync(IDictionary<string, object> env, SignInMessage message)
+        public Task<AuthenticateResult> PreAuthenticateAsync(SignInMessage message, IDictionary<string, object> env)
         {
             return Task.FromResult<AuthenticateResult>(null);
         }
@@ -190,7 +190,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return Task.FromResult<AuthenticateResult>(null);
         }
         
-        public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message)
+        public async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message = null, IDictionary<string, object> env = null)
         {
             if (!userManager.SupportsUserPassword)
             {
@@ -219,8 +219,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 var result = await PostAuthenticateLocalAsync(user, message);
                 if (result != null) return result;
 
-                var p = IdentityServerPrincipal.Create(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id));
-                return new AuthenticateResult(p);
+                return new AuthenticateResult(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id));
             }
             else if (userManager.SupportsUserLockout)
             {
@@ -230,7 +229,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return null;
         }
 
-        public virtual async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser)
+        public async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser, IDictionary<string, object> env)
         {
             if (externalUser == null)
             {
@@ -288,12 +287,12 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<AuthenticateResult> SignInFromExternalProviderAsync(TKey userID, string provider)
         {
-            var p = IdentityServerPrincipal.Create(
+            
+            return new AuthenticateResult(
                 userID.ToString(), 
                 await GetDisplayNameForAccountAsync(userID), 
-                Thinktecture.IdentityServer.Core.Constants.AuthenticationMethods.External, 
-                provider);
-            return new AuthenticateResult(p);
+                authenticationMethod: Thinktecture.IdentityServer.Core.Constants.AuthenticationMethods.External, 
+                identityProvider: provider);
         }
 
         protected virtual async Task<AuthenticateResult> UpdateAccountFromExternalClaimsAsync(TKey userID, string provider, string providerId, IEnumerable<Claim> claims)
@@ -389,6 +388,11 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             }
 
             return true;
+        }
+
+        public Task SignOutAsync(ClaimsPrincipal subject, IDictionary<string, object> env)
+        {
+            return Task.FromResult<object>(null);
         }
     }
 }
