@@ -20,12 +20,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Thinktecture.IdentityServer.Core.Authentication;
 using Thinktecture.IdentityServer.Core.Models;
 using Thinktecture.IdentityServer.Core.Services;
 using Thinktecture.IdentityServer.Core.Extensions;
-using Thinktecture.IdentityServer.Core.Plumbing;
 using Thinktecture.IdentityModel;
+using Thinktecture.IdentityServer.Core;
 
 namespace Thinktecture.IdentityServer.AspNetIdentity
 {
@@ -38,7 +37,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected readonly Func<string, TKey> ConvertSubjectToKey;
         
-        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup)
+        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup = null)
         {
             if (userManager == null) throw new ArgumentNullException("userManager");
             
@@ -167,6 +166,30 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return user.UserName;
         }
 
+        public Task<AuthenticateResult> PreAuthenticateAsync(IDictionary<string, object> env, SignInMessage message)
+        {
+            return Task.FromResult<AuthenticateResult>(null);
+        }
+
+        protected async virtual Task<TUser> FindUserAsync(string username)
+        {
+            return await userManager.FindByNameAsync(username);
+        }
+
+        protected virtual Task<AuthenticateResult> PostAuthenticateLocalAsync(TUser account, SignInMessage message)
+        {
+            //if (await userManager.GetTwoFactorEnabledAsync(userId) &&
+            //    !await AuthenticationManager.TwoFactorBrowserRememberedAsync(user.Id))
+            //{
+            //    var identity = new ClaimsIdentity(DefaultAuthenticationTypes.TwoFactorCookie);
+            //    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
+            //    AuthenticationManager.SignIn(identity);
+            //    return SignInStatus.RequiresTwoFactorAuthentication;
+            //}
+
+            return Task.FromResult<AuthenticateResult>(null);
+        }
+        
         public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message)
         {
             if (!userManager.SupportsUserPassword)
@@ -174,7 +197,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 return null;
             }
 
-            var user = await userManager.FindByNameAsync(username);
+            var user = await FindUserAsync(username);
             if (user == null)
             {
                 return null;
@@ -188,14 +211,13 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
             if (await userManager.CheckPasswordAsync(user, password))
             {
-                //if (await userManager.GetTwoFactorEnabledAsync(userId) &&
-                //    !await AuthenticationManager.TwoFactorBrowserRememberedAsync(user.Id))
-                //{
-                //    var identity = new ClaimsIdentity(DefaultAuthenticationTypes.TwoFactorCookie);
-                //    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
-                //    AuthenticationManager.SignIn(identity);
-                //    return SignInStatus.RequiresTwoFactorAuthentication;
-                //}
+                if (userManager.SupportsUserLockout)
+                {
+                    userManager.ResetAccessFailedCount(user.Id);
+                }
+
+                var result = await PostAuthenticateLocalAsync(user, message);
+                if (result != null) return result;
 
                 var p = IdentityServerPrincipal.Create(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id));
                 return new AuthenticateResult(p);
@@ -215,20 +237,22 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 throw new ArgumentNullException("externalUser");
             }
 
-            var user = await userManager.FindAsync(new UserLoginInfo(externalUser.Provider.Name, externalUser.ProviderId));
+            var user = await userManager.FindAsync(new UserLoginInfo(externalUser.Provider, externalUser.ProviderId));
             if (user == null)
             {
-                return await ProcessNewExternalAccountAsync(externalUser.Provider.Name, externalUser.ProviderId, externalUser.Claims);
+                return await ProcessNewExternalAccountAsync(externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
             }
             else
             {
-                return await ProcessExistingExternalAccountAsync(user.Id, externalUser.Provider.Name, externalUser.ProviderId, externalUser.Claims);
+                return await ProcessExistingExternalAccountAsync(user.Id, externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
             }
         }
 
         protected virtual async Task<AuthenticateResult> ProcessNewExternalAccountAsync(string provider, string providerId, IEnumerable<Claim> claims)
         {
-            var user = new TUser { UserName = Guid.NewGuid().ToString("N") };
+            var user = await CreateNewAccountFromExternalProviderAsync(provider, providerId, claims);
+            if (user == null) throw new InvalidOperationException("CreateNewAccountFromExternalProvider returned null");
+
             var createResult = await userManager.CreateAsync(user);
             if (!createResult.Succeeded)
             {
@@ -246,6 +270,12 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             if (result != null) return result;
 
             return await SignInFromExternalProviderAsync(user.Id, provider);
+        }
+
+        protected virtual Task<TUser> CreateNewAccountFromExternalProviderAsync(string provider, string providerId, IEnumerable<Claim> claims)
+        {
+            var user = new TUser() { UserName = Guid.NewGuid().ToString("N") };
+            return Task.FromResult(user);
         }
 
         protected virtual async Task<AuthenticateResult> AccountCreatedFromExternalProviderAsync(TKey userID, string provider, string providerId, IEnumerable<Claim> claims)
@@ -345,11 +375,6 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             }
             
             return claims;
-        }
-
-        protected virtual IEnumerable<Claim> NormalizeExternalClaimTypes(IEnumerable<Claim> incomingClaims)
-        {
-            return Thinktecture.IdentityServer.Core.Plumbing.ClaimMap.Map(incomingClaims);
         }
 
         public async Task<bool> IsActiveAsync(ClaimsPrincipal subject)
