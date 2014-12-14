@@ -87,7 +87,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             }
         }
 
-        public virtual async Task<IEnumerable<System.Security.Claims.Claim>> GetProfileDataAsync(
+        public virtual async Task<IEnumerable<Claim>> GetProfileDataAsync(
             ClaimsPrincipal subject,
             IEnumerable<string> requestedClaimTypes = null)
         {
@@ -166,7 +166,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return user.UserName;
         }
 
-        public Task<AuthenticateResult> PreAuthenticateAsync(SignInMessage message, IDictionary<string, object> env)
+        public Task<AuthenticateResult> PreAuthenticateAsync(SignInMessage message)
         {
             return Task.FromResult<AuthenticateResult>(null);
         }
@@ -190,7 +190,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return Task.FromResult<AuthenticateResult>(null);
         }
         
-        public async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message = null, IDictionary<string, object> env = null)
+        public async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message = null)
         {
             if (!userManager.SupportsUserPassword)
             {
@@ -229,7 +229,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return null;
         }
 
-        public async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser, IDictionary<string, object> env)
+        public async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser)
         {
             if (externalUser == null)
             {
@@ -390,7 +390,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return true;
         }
 
-        public Task SignOutAsync(ClaimsPrincipal subject, IDictionary<string, object> env)
+        public Task SignOutAsync(ClaimsPrincipal subject)
         {
             return Task.FromResult<object>(null);
         }
