@@ -10,7 +10,7 @@
     <iconUrl>http://www.thinktecture.com/images/favicon.ico</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>"Thinktecture IdentityServer v3 - AspNetIdentity" is a User Service for Thinktecture IdentityServer v3 implemeted using AspNetIdentity</description>
-    <releaseNotes>First beta version</releaseNotes>
+    <releaseNotes></releaseNotes>
     <copyright>Copyright 2014</copyright>
     <tags>Thinktecture IdentityServer Identity User Service AspNetIdentity</tags>
   </metadata>
