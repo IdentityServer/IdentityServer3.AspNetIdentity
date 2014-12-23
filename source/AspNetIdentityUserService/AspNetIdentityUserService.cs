@@ -166,7 +166,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return user.UserName;
         }
 
-        public Task<AuthenticateResult> PreAuthenticateAsync(SignInMessage message)
+        public virtual Task<AuthenticateResult> PreAuthenticateAsync(SignInMessage message)
         {
             return Task.FromResult<AuthenticateResult>(null);
         }
@@ -190,7 +190,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return Task.FromResult<AuthenticateResult>(null);
         }
         
-        public async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message = null)
+        public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message = null)
         {
             if (!userManager.SupportsUserPassword)
             {
@@ -229,7 +229,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return null;
         }
 
-        public async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser)
+        public virtual async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser, SignInMessage message)
         {
             if (externalUser == null)
             {
@@ -376,7 +376,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return claims;
         }
 
-        public async Task<bool> IsActiveAsync(ClaimsPrincipal subject)
+        public virtual async Task<bool> IsActiveAsync(ClaimsPrincipal subject)
         {
             if (subject == null) throw new ArgumentNullException("subject");
 
@@ -390,7 +390,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return true;
         }
 
-        public Task SignOutAsync(ClaimsPrincipal subject)
+        public virtual Task SignOutAsync(ClaimsPrincipal subject)
         {
             return Task.FromResult<object>(null);
         }
