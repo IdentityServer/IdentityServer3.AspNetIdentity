@@ -112,6 +112,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         {
             var claims = new List<Claim>{
                 new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Subject, user.Id.ToString()),
+                new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.PreferredUserName, user.UserName),
             };
 
             if (userManager.SupportsUserEmail)
