@@ -37,21 +37,29 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected readonly Func<string, TKey> ConvertSubjectToKey;
         
-        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup = null)
+        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup = null, Func<string, TKey> parseSubject = null)
         {
             if (userManager == null) throw new ArgumentNullException("userManager");
             
             this.userManager = userManager;
             this.cleanup = cleanup;
 
-            var keyType = typeof(TKey);
-            if (keyType == typeof(string)) ConvertSubjectToKey = subject => (TKey)ParseString(subject);
-            else if (keyType == typeof(int)) ConvertSubjectToKey = subject => (TKey)ParseInt(subject);
-            else if (keyType == typeof(long)) ConvertSubjectToKey = subject => (TKey)ParseLong(subject);
-            else if (keyType == typeof(Guid)) ConvertSubjectToKey = subject => (TKey)ParseGuid(subject);
+            if (parseSubject != null)
+            {
+                ConvertSubjectToKey = parseSubject;
+            }
             else
             {
-                throw new InvalidOperationException("Key type not supported");
+                var keyType = typeof (TKey);
+                if (keyType == typeof (string)) ConvertSubjectToKey = subject => (TKey) ParseString(subject);
+                else if (keyType == typeof (int)) ConvertSubjectToKey = subject => (TKey) ParseInt(subject);
+                else if (keyType == typeof (uint)) ConvertSubjectToKey = subject => (TKey) ParseUInt32(subject);
+                else if (keyType == typeof (long)) ConvertSubjectToKey = subject => (TKey) ParseLong(subject);
+                else if (keyType == typeof (Guid)) ConvertSubjectToKey = subject => (TKey) ParseGuid(subject);
+                else
+                {
+                    throw new InvalidOperationException("Key type not supported");
+                }
             }
         }
 
@@ -63,6 +71,12 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         {
             int key;
             if (!Int32.TryParse(sub, out key)) return 0;
+            return key;
+        }
+        object ParseUInt32(string sub)
+        {
+            uint key;
+            if (!UInt32.TryParse(sub, out key)) return 0;
             return key;
         }
         object ParseLong(string sub)
