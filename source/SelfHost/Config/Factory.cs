@@ -31,13 +31,12 @@ namespace SelfHost.Config
         {
             var factory = new IdentityServerServiceFactory();
 
-            factory.UserService = new Registration<IUserService>(resolver => AspNetIdentityUserServiceFactory.Factory(connString));
+            factory.UserService = new Registration<IUserService>((resolver)=>AspNetIdentityUserServiceFactory.Factory(connString));
 
             var scopeStore = new InMemoryScopeStore(Scopes.Get());
-            factory.ScopeStore = new Registration<IScopeStore>(resolver => scopeStore);
-            
+            factory.ScopeStore = new Registration<IScopeStore>(scopeStore);
             var clientStore = new InMemoryClientStore(Clients.Get());
-            factory.ClientStore = new Registration<IClientStore>(resolver => clientStore);
+            factory.ClientStore = new Registration<IClientStore>(clientStore);
 
             return factory;
         }

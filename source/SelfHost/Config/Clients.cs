@@ -31,7 +31,9 @@ namespace Thinktecture.IdentityServer.Host.Config
                     ClientName = "Code Flow Clients",
                     Enabled = true,
                     ClientId = "codeclient",
-                    ClientSecret = "secret",
+                    ClientSecrets = new List<ClientSecret>{
+                        new ClientSecret("secret".Sha256())
+                    },
                     Flow = Flows.AuthorizationCode,
                     
                     RequireConsent = true,
@@ -59,8 +61,6 @@ namespace Thinktecture.IdentityServer.Host.Config
                         "write"
                     },
 
-                    
-                    IdentityTokenSigningKeyType = SigningKeyTypes.Default,
                     //SubjectType = SubjectTypes.Global,
                     AccessTokenType = AccessTokenType.Reference,
                     
@@ -74,7 +74,9 @@ namespace Thinktecture.IdentityServer.Host.Config
                     ClientName = "Implicit Clients",
                     Enabled = true,
                     ClientId = "implicitclient",
-                    ClientSecret = "secret",
+                    ClientSecrets = new List<ClientSecret>{
+                        new ClientSecret("secret".Sha256())
+                    },
                     Flow = Flows.Implicit,
                     
                     ClientUri = "http://www.thinktecture.com",
@@ -107,7 +109,6 @@ namespace Thinktecture.IdentityServer.Host.Config
                         "write"
                     },
 
-                    IdentityTokenSigningKeyType = SigningKeyTypes.Default,
                     //SubjectType = SubjectTypes.Global,
                     AccessTokenType = AccessTokenType.Jwt,
                     
@@ -119,7 +120,6 @@ namespace Thinktecture.IdentityServer.Host.Config
                     ClientName = "Client Credentials Flow Client",
                     Enabled = true,
                     ClientId = "client",
-                    ClientSecret = "secret",
                     Flow = Flows.ClientCredentials,
                     
                     ScopeRestrictions = new List<string>
@@ -136,7 +136,9 @@ namespace Thinktecture.IdentityServer.Host.Config
                     ClientName = "Resource Owner Flow Client",
                     Enabled = true,
                     ClientId = "roclient",
-                    ClientSecret = "secret",
+                    ClientSecrets = new List<ClientSecret>{
+                        new ClientSecret("secret".Sha256())
+                    },
                     Flow = Flows.ResourceOwner,
                     
                     ScopeRestrictions = new List<string>
