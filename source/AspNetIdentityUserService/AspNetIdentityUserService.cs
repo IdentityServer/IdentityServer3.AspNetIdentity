@@ -28,21 +28,19 @@ using Thinktecture.IdentityServer.Core;
 
 namespace Thinktecture.IdentityServer.AspNetIdentity
 {
-    public class AspNetIdentityUserService<TUser, TKey> : IUserService, IDisposable
+    public class AspNetIdentityUserService<TUser, TKey> : IUserService
         where TUser : class, IUser<TKey>, new()
         where TKey : IEquatable<TKey>
     {
         protected readonly UserManager<TUser, TKey> userManager;
-        IDisposable cleanup;
 
         protected readonly Func<string, TKey> ConvertSubjectToKey;
         
-        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup = null, Func<string, TKey> parseSubject = null)
+        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, Func<string, TKey> parseSubject = null)
         {
             if (userManager == null) throw new ArgumentNullException("userManager");
             
             this.userManager = userManager;
-            this.cleanup = cleanup;
 
             if (parseSubject != null)
             {
@@ -92,15 +90,6 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return key;
         }
         
-        public virtual void Dispose()
-        {
-            if (this.cleanup != null)
-            {
-                this.cleanup.Dispose();
-                this.cleanup = null;
-            }
-        }
-
         public virtual async Task<IEnumerable<Claim>> GetProfileDataAsync(
             ClaimsPrincipal subject,
             IEnumerable<string> requestedClaimTypes = null)
