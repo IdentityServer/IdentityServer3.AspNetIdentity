@@ -16,7 +16,7 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 
-namespace SelfHost.Config
+namespace SelfHost.IdSvr
 {
     static class Certificate
     {

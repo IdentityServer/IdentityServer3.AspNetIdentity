@@ -24,9 +24,8 @@ using System.Threading.Tasks;
 using Thinktecture.IdentityServer.Core.Configuration;
 using Thinktecture.IdentityServer.Core.Services;
 using Thinktecture.IdentityServer.Core.Services.InMemory;
-using Thinktecture.IdentityServer.Host.Config;
 
-namespace SelfHost.Config
+namespace SelfHost.IdSvr
 {
     class Factory
     {

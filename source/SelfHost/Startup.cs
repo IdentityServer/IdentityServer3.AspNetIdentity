@@ -17,12 +17,11 @@ using Microsoft.Owin.Security.Twitter;
  * limitations under the License.
  */
 using Owin;
-using SelfHost.Config;
+using SelfHost.IdSvr;
 using Thinktecture.IdentityManager;
 using Thinktecture.IdentityManager.Configuration;
 using Thinktecture.IdentityServer.Core.Configuration;
 using SelfHost.IdMgr;
-using SelfHost.IdSvr;
 
 namespace SelfHost
 {
