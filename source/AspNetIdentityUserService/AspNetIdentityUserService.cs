@@ -32,6 +32,8 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         where TUser : class, IUser<TKey>, new()
         where TKey : IEquatable<TKey>
     {
+        public string DisplayNameClaimType { get; set; }
+
         protected readonly UserManager<TUser, TKey> userManager;
 
         protected readonly Func<string, TKey> ConvertSubjectToKey;
@@ -158,15 +160,18 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<string> GetDisplayNameForAccountAsync(TKey userID)
         {
-            if (userManager.SupportsUserClaim)
-            {            
-                var claims = await userManager.GetClaimsAsync(userID);
-                var nameClaim = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name);
-                if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
-                if (nameClaim != null) return nameClaim.Value;
-            }
-            
             var user = await userManager.FindByIdAsync(userID);
+            var claims = await GetClaimsFromAccount(user);
+
+            Claim nameClaim = null;
+            if (DisplayNameClaimType != null)
+            {
+                nameClaim = claims.FirstOrDefault(x => x.Type == DisplayNameClaimType);
+            }
+            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name);
+            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
+            if (nameClaim != null) return nameClaim.Value;
+            
             return user.UserName;
         }
 
