@@ -109,7 +109,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             }
 
             var claims = await GetClaimsFromAccount(acct);
-            if (requestedClaimTypes != null)
+            if (requestedClaimTypes != null && requestedClaimTypes.Any())
             {
                 claims = claims.Where(x => requestedClaimTypes.Contains(x.Type));
             }
