@@ -33,6 +33,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         where TKey : IEquatable<TKey>
     {
         public string DisplayNameClaimType { get; set; }
+        public bool EnableSecurityStamp { get; set; }
 
         protected readonly UserManager<TUser, TKey> userManager;
 
@@ -61,6 +62,8 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                     throw new InvalidOperationException("Key type not supported");
                 }
             }
+
+            EnableSecurityStamp = true;
         }
 
         object ParseString(string sub)
@@ -228,7 +231,8 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 var result = await PostAuthenticateLocalAsync(user, message);
                 if (result != null) return result;
 
-                return new AuthenticateResult(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id));
+                var claims = await GetClaimsForAuthenticateResult(user);
+                return new AuthenticateResult(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id), claims);
             }
             else if (userManager.SupportsUserLockout)
             {
@@ -236,6 +240,20 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             }
 
             return null;
+        }
+
+        protected virtual async Task<IEnumerable<Claim>> GetClaimsForAuthenticateResult(TUser user)
+        {
+            List<Claim> claims = new List<Claim>();
+            if (EnableSecurityStamp && userManager.SupportsUserSecurityStamp)
+            {
+                var stamp = await userManager.GetSecurityStampAsync(user.Id);
+                if (!String.IsNullOrWhiteSpace(stamp))
+                {
+                    claims.Add(new Claim("security_stamp", stamp));
+                }
+            }
+            return claims;
         }
 
         public virtual async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser, SignInMessage message)
@@ -296,10 +314,13 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<AuthenticateResult> SignInFromExternalProviderAsync(TKey userID, string provider)
         {
-            
+            var user = await userManager.FindByIdAsync(userID);
+            var claims = await GetClaimsForAuthenticateResult(user);
+
             return new AuthenticateResult(
                 userID.ToString(), 
-                await GetDisplayNameForAccountAsync(userID), 
+                await GetDisplayNameForAccountAsync(userID),
+                claims,
                 authenticationMethod: Thinktecture.IdentityServer.Core.Constants.AuthenticationMethods.External, 
                 identityProvider: provider);
         }
@@ -389,13 +410,27 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         {
             if (subject == null) throw new ArgumentNullException("subject");
 
-            TKey key = ConvertSubjectToKey(subject.GetSubjectId());
+            var id = subject.GetSubjectId();
+            TKey key = ConvertSubjectToKey(id);
             var acct = await userManager.FindByIdAsync(key);
             if (acct == null)
             {
                 return false;
             }
 
+            if (EnableSecurityStamp && userManager.SupportsUserSecurityStamp)
+            {
+                var security_stamp = subject.Claims.Where(x => x.Type == "security_stamp").Select(x => x.Value).SingleOrDefault();
+                if (security_stamp != null)
+                {
+                    var db_security_stamp = await userManager.GetSecurityStampAsync(key);
+                    if (db_security_stamp != security_stamp)
+                    {
+                        return false;
+                    }
+                }
+            }
+            
             return true;
         }
 
