@@ -190,15 +190,6 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual Task<AuthenticateResult> PostAuthenticateLocalAsync(TUser account, SignInMessage message)
         {
-            //if (await userManager.GetTwoFactorEnabledAsync(userId) &&
-            //    !await AuthenticationManager.TwoFactorBrowserRememberedAsync(user.Id))
-            //{
-            //    var identity = new ClaimsIdentity(DefaultAuthenticationTypes.TwoFactorCookie);
-            //    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
-            //    AuthenticationManager.SignIn(identity);
-            //    return SignInStatus.RequiresTwoFactorAuthentication;
-            //}
-
             return Task.FromResult<AuthenticateResult>(null);
         }
         
