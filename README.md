@@ -1,4 +1,4 @@
-# ASP.NET Identity support for Thinktecture IdentityServer v3 #
+# ASP.NET Identity support for Thinktecture IdentityServer3 #
 
 Dev build: [![Build status](https://ci.appveyor.com/api/projects/status/gblu2lr2lvmenn63?svg=true)](https://ci.appveyor.com/project/leastprivilege/thinktecture-identityserver-v3-aspnetidentity)
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/thinktecture/Thinktecture.IdentityServer.v3?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
