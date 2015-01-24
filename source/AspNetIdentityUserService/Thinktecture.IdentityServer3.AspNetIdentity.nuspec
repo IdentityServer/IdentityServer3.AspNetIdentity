@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Thinktecture.IdentityServer.v3.AspNetIdentity</id>
+    <id>Thinktecture.IdentityServer3.AspNetIdentity</id>
     <version>0.0.0</version>
-    <title>Thinktecture IdentityServer v3 - AspNetIdentity</title>
+    <title>Thinktecture IdentityServer3 - AspNetIdentity</title>
     <authors>Brock Allen, Dominick Baier</authors>
     <owners>Brock Allen, Dominick Baier</owners>
-    <projectUrl>https://github.com/thinktecture/Thinktecture.IdentityServer.v3.AspNetIdentity</projectUrl>
+    <projectUrl>https://github.com/IdentityServer/Thinktecture.IdentityServer3.AspNetIdentity</projectUrl>
     <iconUrl>http://www.thinktecture.com/images/favicon.ico</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>"Thinktecture IdentityServer v3 - AspNetIdentity" is a User Service for Thinktecture IdentityServer v3 implemeted using AspNetIdentity</description>
+    <description>"Thinktecture IdentityServer v3 - AspNetIdentity" is a User Service for Thinktecture IdentityServer3 implemeted using AspNetIdentity</description>
     <releaseNotes></releaseNotes>
-    <copyright>Copyright 2014</copyright>
+    <copyright>Copyright 2015</copyright>
     <tags>Thinktecture IdentityServer Identity User Service AspNetIdentity</tags>
   </metadata>
 </package>
