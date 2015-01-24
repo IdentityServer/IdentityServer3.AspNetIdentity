@@ -9,7 +9,7 @@
     <projectUrl>https://github.com/IdentityServer/Thinktecture.IdentityServer3.AspNetIdentity</projectUrl>
     <iconUrl>http://www.thinktecture.com/images/favicon.ico</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>"Thinktecture IdentityServer v3 - AspNetIdentity" is a User Service for Thinktecture IdentityServer3 implemeted using AspNetIdentity</description>
+    <description>"Thinktecture IdentityServer3 - AspNetIdentity" is a User Service for Thinktecture IdentityServer3 implemeted using AspNetIdentity</description>
     <releaseNotes></releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>Thinktecture IdentityServer Identity User Service AspNetIdentity</tags>
