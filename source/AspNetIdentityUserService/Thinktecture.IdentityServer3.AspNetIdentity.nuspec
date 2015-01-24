@@ -9,9 +9,10 @@
     <projectUrl>https://github.com/IdentityServer/Thinktecture.IdentityServer3.AspNetIdentity</projectUrl>
     <iconUrl>http://www.thinktecture.com/images/favicon.ico</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>"Thinktecture IdentityServer3 - AspNetIdentity" is a User Service for Thinktecture IdentityServer3 implemeted using AspNetIdentity</description>
+    <summary>ASP.NET Identity support for IdentityServer3</summary>
+    <description>ASP.NET Identity support for IdentityServer3</description>
     <releaseNotes></releaseNotes>
     <copyright>Copyright 2015</copyright>
-    <tags>Thinktecture IdentityServer Identity User Service AspNetIdentity</tags>
+    <tags>Thinktecture IdentityServer OpenID Connect OpenIDConnect OAuth2 OWIN ASP.NET Katana WebApi SSO Federation Claims Identity AspNetIdentity</tags>
   </metadata>
 </package>
