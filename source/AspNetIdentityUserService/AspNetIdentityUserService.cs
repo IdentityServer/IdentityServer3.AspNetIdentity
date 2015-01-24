@@ -28,21 +28,22 @@ using Thinktecture.IdentityServer.Core;
 
 namespace Thinktecture.IdentityServer.AspNetIdentity
 {
-    public class AspNetIdentityUserService<TUser, TKey> : IUserService, IDisposable
+    public class AspNetIdentityUserService<TUser, TKey> : IUserService
         where TUser : class, IUser<TKey>, new()
         where TKey : IEquatable<TKey>
     {
+        public string DisplayNameClaimType { get; set; }
+        public bool EnableSecurityStamp { get; set; }
+
         protected readonly UserManager<TUser, TKey> userManager;
-        IDisposable cleanup;
 
         protected readonly Func<string, TKey> ConvertSubjectToKey;
         
-        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, IDisposable cleanup = null, Func<string, TKey> parseSubject = null)
+        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, Func<string, TKey> parseSubject = null)
         {
             if (userManager == null) throw new ArgumentNullException("userManager");
             
             this.userManager = userManager;
-            this.cleanup = cleanup;
 
             if (parseSubject != null)
             {
@@ -61,6 +62,8 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                     throw new InvalidOperationException("Key type not supported");
                 }
             }
+
+            EnableSecurityStamp = true;
         }
 
         object ParseString(string sub)
@@ -92,15 +95,6 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return key;
         }
         
-        public virtual void Dispose()
-        {
-            if (this.cleanup != null)
-            {
-                this.cleanup.Dispose();
-                this.cleanup = null;
-            }
-        }
-
         public virtual async Task<IEnumerable<Claim>> GetProfileDataAsync(
             ClaimsPrincipal subject,
             IEnumerable<string> requestedClaimTypes = null)
@@ -115,7 +109,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             }
 
             var claims = await GetClaimsFromAccount(acct);
-            if (requestedClaimTypes != null)
+            if (requestedClaimTypes != null && requestedClaimTypes.Any())
             {
                 claims = claims.Where(x => requestedClaimTypes.Contains(x.Type));
             }
@@ -169,15 +163,18 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<string> GetDisplayNameForAccountAsync(TKey userID)
         {
-            if (userManager.SupportsUserClaim)
-            {            
-                var claims = await userManager.GetClaimsAsync(userID);
-                var nameClaim = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name);
-                if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
-                if (nameClaim != null) return nameClaim.Value;
-            }
-            
             var user = await userManager.FindByIdAsync(userID);
+            var claims = await GetClaimsFromAccount(user);
+
+            Claim nameClaim = null;
+            if (DisplayNameClaimType != null)
+            {
+                nameClaim = claims.FirstOrDefault(x => x.Type == DisplayNameClaimType);
+            }
+            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name);
+            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
+            if (nameClaim != null) return nameClaim.Value;
+            
             return user.UserName;
         }
 
@@ -193,15 +190,6 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual Task<AuthenticateResult> PostAuthenticateLocalAsync(TUser account, SignInMessage message)
         {
-            //if (await userManager.GetTwoFactorEnabledAsync(userId) &&
-            //    !await AuthenticationManager.TwoFactorBrowserRememberedAsync(user.Id))
-            //{
-            //    var identity = new ClaimsIdentity(DefaultAuthenticationTypes.TwoFactorCookie);
-            //    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
-            //    AuthenticationManager.SignIn(identity);
-            //    return SignInStatus.RequiresTwoFactorAuthentication;
-            //}
-
             return Task.FromResult<AuthenticateResult>(null);
         }
         
@@ -234,7 +222,8 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 var result = await PostAuthenticateLocalAsync(user, message);
                 if (result != null) return result;
 
-                return new AuthenticateResult(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id));
+                var claims = await GetClaimsForAuthenticateResult(user);
+                return new AuthenticateResult(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id), claims);
             }
             else if (userManager.SupportsUserLockout)
             {
@@ -242,6 +231,20 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             }
 
             return null;
+        }
+
+        protected virtual async Task<IEnumerable<Claim>> GetClaimsForAuthenticateResult(TUser user)
+        {
+            List<Claim> claims = new List<Claim>();
+            if (EnableSecurityStamp && userManager.SupportsUserSecurityStamp)
+            {
+                var stamp = await userManager.GetSecurityStampAsync(user.Id);
+                if (!String.IsNullOrWhiteSpace(stamp))
+                {
+                    claims.Add(new Claim("security_stamp", stamp));
+                }
+            }
+            return claims;
         }
 
         public virtual async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser, SignInMessage message)
@@ -264,7 +267,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<AuthenticateResult> ProcessNewExternalAccountAsync(string provider, string providerId, IEnumerable<Claim> claims)
         {
-            var user = await CreateNewAccountFromExternalProviderAsync(provider, providerId, claims);
+            var user = await InstantiateNewUserFromExternalProviderAsync(provider, providerId, claims);
             if (user == null) throw new InvalidOperationException("CreateNewAccountFromExternalProvider returned null");
 
             var createResult = await userManager.CreateAsync(user);
@@ -286,7 +289,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return await SignInFromExternalProviderAsync(user.Id, provider);
         }
 
-        protected virtual Task<TUser> CreateNewAccountFromExternalProviderAsync(string provider, string providerId, IEnumerable<Claim> claims)
+        protected virtual Task<TUser> InstantiateNewUserFromExternalProviderAsync(string provider, string providerId, IEnumerable<Claim> claims)
         {
             var user = new TUser() { UserName = Guid.NewGuid().ToString("N") };
             return Task.FromResult(user);
@@ -302,10 +305,13 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<AuthenticateResult> SignInFromExternalProviderAsync(TKey userID, string provider)
         {
-            
+            var user = await userManager.FindByIdAsync(userID);
+            var claims = await GetClaimsForAuthenticateResult(user);
+
             return new AuthenticateResult(
                 userID.ToString(), 
-                await GetDisplayNameForAccountAsync(userID), 
+                await GetDisplayNameForAccountAsync(userID),
+                claims,
                 authenticationMethod: Thinktecture.IdentityServer.Core.Constants.AuthenticationMethods.External, 
                 identityProvider: provider);
         }
@@ -395,13 +401,27 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         {
             if (subject == null) throw new ArgumentNullException("subject");
 
-            TKey key = ConvertSubjectToKey(subject.GetSubjectId());
+            var id = subject.GetSubjectId();
+            TKey key = ConvertSubjectToKey(id);
             var acct = await userManager.FindByIdAsync(key);
             if (acct == null)
             {
                 return false;
             }
 
+            if (EnableSecurityStamp && userManager.SupportsUserSecurityStamp)
+            {
+                var security_stamp = subject.Claims.Where(x => x.Type == "security_stamp").Select(x => x.Value).SingleOrDefault();
+                if (security_stamp != null)
+                {
+                    var db_security_stamp = await userManager.GetSecurityStampAsync(key);
+                    if (db_security_stamp != security_stamp)
+                    {
+                        return false;
+                    }
+                }
+            }
+            
             return true;
         }
 

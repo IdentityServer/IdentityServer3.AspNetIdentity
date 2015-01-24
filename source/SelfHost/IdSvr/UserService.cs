@@ -13,32 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+using SelfHost.AspId;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Thinktecture.IdentityServer.AspNetIdentity;
 using Thinktecture.IdentityServer.Core.Configuration;
 using Thinktecture.IdentityServer.Core.Services;
-using Thinktecture.IdentityServer.Core.Services.InMemory;
-using Thinktecture.IdentityServer.Host.Config;
 
-namespace SelfHost.Config
+namespace SelfHost.IdSvr
 {
-    class Factory
+    public static class UserServiceExtensions
     {
-        public static IdentityServerServiceFactory Configure(string connString)
+        public static void ConfigureUserService(this IdentityServerServiceFactory factory, string connString)
         {
-            var factory = new IdentityServerServiceFactory();
-
-            factory.UserService = new Registration<IUserService>((resolver)=>AspNetIdentityUserServiceFactory.Factory(connString));
-
-            var scopeStore = new InMemoryScopeStore(Scopes.Get());
-            factory.ScopeStore = new Registration<IScopeStore>(scopeStore);
-            var clientStore = new InMemoryClientStore(Clients.Get());
-            factory.ClientStore = new Registration<IClientStore>(clientStore);
-
-            return factory;
+            factory.UserService = new Registration<IUserService, UserService>();
+            factory.Register(new Registration<UserManager>());
+            factory.Register(new Registration<UserStore>());
+            factory.Register(new Registration<Context>(resolver => new Context(connString)));
+        }
+    }
+    
+    public class UserService : AspNetIdentityUserService<User, string>
+    {
+        public UserService(UserManager userMgr)
+            : base(userMgr)
+        {
         }
     }
 }

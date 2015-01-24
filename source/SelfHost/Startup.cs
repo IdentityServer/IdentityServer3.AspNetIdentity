@@ -17,9 +17,11 @@ using Microsoft.Owin.Security.Twitter;
  * limitations under the License.
  */
 using Owin;
-using SelfHost.Config;
+using SelfHost.IdSvr;
 using Thinktecture.IdentityManager;
+using Thinktecture.IdentityManager.Configuration;
 using Thinktecture.IdentityServer.Core.Configuration;
+using SelfHost.IdMgr;
 
 namespace SelfHost
 {
@@ -29,20 +31,25 @@ namespace SelfHost
         {
             app.Map("/admin", adminApp =>
             {
-                var factory = new Thinktecture.IdentityManager.Host.AspNetIdentityIdentityManagerFactory("AspId");
-                adminApp.UseIdentityManager(new IdentityManagerConfiguration()
+                var factory = new IdentityManagerServiceFactory();
+                factory.ConfigureSimpleIdentityManagerService("AspId");
+                //factory.ConfigureCustomIdentityManagerServiceWithIntKeys("AspId_CustomPK");
+
+                adminApp.UseIdentityManager(new IdentityManagerOptions()
                 {
-                    IdentityManagerFactory = factory.Create
+                    Factory = factory
                 });
             });
 
+            var idSvrFactory = Factory.Configure();
+            idSvrFactory.ConfigureUserService("AspId");
+            //idSvrFactory.ConfigureCustomUserService("AspId_CustomPK");
+
             var options = new IdentityServerOptions
             {
-                IssuerUri = "https://idsrv3.com",
-                SiteName = "Thinktecture IdentityServer v3 - UserService-AspNetIdentity",
-
+                SiteName = "Thinktecture IdentityServer3 - UserService-AspNetIdentity",
                 SigningCertificate = Certificate.Get(),
-                Factory = Factory.Configure("AspId"),
+                Factory = idSvrFactory,
                 CorsPolicy = CorsPolicy.AllowAll,
                 AuthenticationOptions = new AuthenticationOptions
                 {
