@@ -9,6 +9,7 @@
     <projectUrl>https://github.com/IdentityServer/Thinktecture.IdentityServer3.AspNetIdentity</projectUrl>
     <iconUrl>http://www.thinktecture.com/images/favicon.ico</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/IdentityServer/Thinktecture.IdentityServer3.AspNetIdentity/blob/master/LICENSE</licenseUrl>
     <summary>ASP.NET Identity support for IdentityServer3</summary>
     <description>ASP.NET Identity support for IdentityServer3</description>
     <releaseNotes></releaseNotes>
