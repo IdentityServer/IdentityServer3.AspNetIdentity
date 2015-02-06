@@ -188,7 +188,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             return await userManager.FindByNameAsync(username);
         }
 
-        protected virtual Task<AuthenticateResult> PostAuthenticateLocalAsync(TUser account, SignInMessage message)
+        protected virtual Task<AuthenticateResult> PostAuthenticateLocalAsync(TUser user, SignInMessage message)
         {
             return Task.FromResult<AuthenticateResult>(null);
         }
