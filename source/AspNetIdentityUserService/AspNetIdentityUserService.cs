@@ -20,13 +20,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Thinktecture.IdentityServer.Core.Models;
-using Thinktecture.IdentityServer.Core.Services;
-using Thinktecture.IdentityServer.Core.Extensions;
+using IdentityServer3.Core.Models;
+using IdentityServer3.Core.Services;
+using IdentityServer3.Core.Extensions;
 using Thinktecture.IdentityModel;
-using Thinktecture.IdentityServer.Core;
+using IdentityServer3.Core;
 
-namespace Thinktecture.IdentityServer.AspNetIdentity
+namespace IdentityServer3.AspNetIdentity
 {
     public class AspNetIdentityUserService<TUser, TKey> : IUserService
         where TUser : class, IUser<TKey>, new()
@@ -119,8 +119,8 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
         protected virtual async Task<IEnumerable<Claim>> GetClaimsFromAccount(TUser user)
         {
             var claims = new List<Claim>{
-                new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Subject, user.Id.ToString()),
-                new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.PreferredUserName, user.UserName),
+                new Claim(IdentityServer3.Core.Constants.ClaimTypes.Subject, user.Id.ToString()),
+                new Claim(IdentityServer3.Core.Constants.ClaimTypes.PreferredUserName, user.UserName),
             };
 
             if (userManager.SupportsUserEmail)
@@ -128,9 +128,9 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 var email = await userManager.GetEmailAsync(user.Id);
                 if (!String.IsNullOrWhiteSpace(email))
                 {
-                    claims.Add(new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Email, email));
+                    claims.Add(new Claim(IdentityServer3.Core.Constants.ClaimTypes.Email, email));
                     var verified = await userManager.IsEmailConfirmedAsync(user.Id);
-                    claims.Add(new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.EmailVerified, verified ? "true" : "false"));
+                    claims.Add(new Claim(IdentityServer3.Core.Constants.ClaimTypes.EmailVerified, verified ? "true" : "false"));
                 }
             }
 
@@ -139,9 +139,9 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 var phone = await userManager.GetPhoneNumberAsync(user.Id);
                 if (!String.IsNullOrWhiteSpace(phone))
                 {
-                    claims.Add(new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.PhoneNumber, phone));
+                    claims.Add(new Claim(IdentityServer3.Core.Constants.ClaimTypes.PhoneNumber, phone));
                     var verified = await userManager.IsPhoneNumberConfirmedAsync(user.Id);
-                    claims.Add(new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.PhoneNumberVerified, verified ? "true" : "false"));
+                    claims.Add(new Claim(IdentityServer3.Core.Constants.ClaimTypes.PhoneNumberVerified, verified ? "true" : "false"));
                 }
             }
 
@@ -154,7 +154,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             {
                 var roleClaims =
                     from role in await userManager.GetRolesAsync(user.Id)
-                    select new Claim(Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Role, role);
+                    select new Claim(IdentityServer3.Core.Constants.ClaimTypes.Role, role);
                 claims.AddRange(roleClaims);
             }
 
@@ -171,7 +171,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
             {
                 nameClaim = claims.FirstOrDefault(x => x.Type == DisplayNameClaimType);
             }
-            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Name);
+            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == IdentityServer3.Core.Constants.ClaimTypes.Name);
             if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
             if (nameClaim != null) return nameClaim.Value;
             
@@ -312,7 +312,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                 userID.ToString(), 
                 await GetDisplayNameForAccountAsync(userID),
                 claims,
-                authenticationMethod: Thinktecture.IdentityServer.Core.Constants.AuthenticationMethods.External, 
+                authenticationMethod: IdentityServer3.Core.Constants.AuthenticationMethods.External, 
                 identityProvider: provider);
         }
 
@@ -341,7 +341,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<IEnumerable<Claim>> SetAccountEmailAsync(TKey userID, IEnumerable<Claim> claims)
         {
-            var email = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Email);
+            var email = claims.FirstOrDefault(x => x.Type == IdentityServer3.Core.Constants.ClaimTypes.Email);
             if (email != null)
             {
                 var userEmail = await userManager.GetEmailAsync(userID);
@@ -352,14 +352,14 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                     var result = await userManager.SetEmailAsync(userID, email.Value);
                     if (result.Succeeded)
                     {
-                        var email_verified = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.EmailVerified);
+                        var email_verified = claims.FirstOrDefault(x => x.Type == IdentityServer3.Core.Constants.ClaimTypes.EmailVerified);
                         if (email_verified != null && email_verified.Value == "true")
                         {
                             var token = await userManager.GenerateEmailConfirmationTokenAsync(userID);
                             await userManager.ConfirmEmailAsync(userID, token);
                         }
 
-                        var emailClaims = new string[] { Thinktecture.IdentityServer.Core.Constants.ClaimTypes.Email, Thinktecture.IdentityServer.Core.Constants.ClaimTypes.EmailVerified };
+                        var emailClaims = new string[] { IdentityServer3.Core.Constants.ClaimTypes.Email, IdentityServer3.Core.Constants.ClaimTypes.EmailVerified };
                         return claims.Where(x => !emailClaims.Contains(x.Type));
                     }
                 }
@@ -370,7 +370,7 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
 
         protected virtual async Task<IEnumerable<Claim>> SetAccountPhoneAsync(TKey userID, IEnumerable<Claim> claims)
         {
-            var phone = claims.FirstOrDefault(x=>x.Type==Thinktecture.IdentityServer.Core.Constants.ClaimTypes.PhoneNumber);
+            var phone = claims.FirstOrDefault(x=>x.Type==IdentityServer3.Core.Constants.ClaimTypes.PhoneNumber);
             if (phone != null)
             {
                 var userPhone = await userManager.GetPhoneNumberAsync(userID);
@@ -381,14 +381,14 @@ namespace Thinktecture.IdentityServer.AspNetIdentity
                     var result = await userManager.SetPhoneNumberAsync(userID, phone.Value);
                     if (result.Succeeded)
                     {
-                        var phone_verified = claims.FirstOrDefault(x => x.Type == Thinktecture.IdentityServer.Core.Constants.ClaimTypes.PhoneNumberVerified);
+                        var phone_verified = claims.FirstOrDefault(x => x.Type == IdentityServer3.Core.Constants.ClaimTypes.PhoneNumberVerified);
                         if (phone_verified != null && phone_verified.Value == "true")
                         {
                             var token = await userManager.GenerateChangePhoneNumberTokenAsync(userID, phone.Value);
                             await userManager.ChangePhoneNumberAsync(userID, phone.Value, token);
                         }
 
-                        var phoneClaims = new string[] { Thinktecture.IdentityServer.Core.Constants.ClaimTypes.PhoneNumber, Thinktecture.IdentityServer.Core.Constants.ClaimTypes.PhoneNumberVerified };
+                        var phoneClaims = new string[] { IdentityServer3.Core.Constants.ClaimTypes.PhoneNumber, IdentityServer3.Core.Constants.ClaimTypes.PhoneNumberVerified };
                         return claims.Where(x => !phoneClaims.Contains(x.Type));
                     }
                 }

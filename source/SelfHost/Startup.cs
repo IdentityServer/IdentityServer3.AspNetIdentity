@@ -20,7 +20,7 @@ using Owin;
 using SelfHost.IdSvr;
 using IdentityManager;
 using IdentityManager.Configuration;
-using Thinktecture.IdentityServer.Core.Configuration;
+using IdentityServer3.Core.Configuration;
 using SelfHost.IdMgr;
 
 namespace SelfHost
@@ -47,10 +47,9 @@ namespace SelfHost
 
             var options = new IdentityServerOptions
             {
-                SiteName = "Thinktecture IdentityServer3 - UserService-AspNetIdentity",
+                SiteName = "IdentityServer3 - UserService-AspNetIdentity",
                 SigningCertificate = Certificate.Get(),
                 Factory = idSvrFactory,
-                CorsPolicy = CorsPolicy.AllowAll,
                 AuthenticationOptions = new AuthenticationOptions
                 {
                     IdentityProviders = ConfigureAdditionalIdentityProviders,
