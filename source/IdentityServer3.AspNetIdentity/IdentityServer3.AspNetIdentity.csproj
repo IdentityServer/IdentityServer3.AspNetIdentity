@@ -68,8 +68,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IdentityServer3.AspNetIdentity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AspNetIdentityUserService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\default.licenseheader">

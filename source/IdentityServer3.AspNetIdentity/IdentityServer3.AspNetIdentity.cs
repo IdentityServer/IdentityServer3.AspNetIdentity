@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2014 Dominick Baier, Brock Allen
+ * Copyright 2015 Dominick Baier, Brock Allen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ using IdentityServer3.Core.Models;
 using IdentityServer3.Core.Services;
 using IdentityServer3.Core.Extensions;
 using Thinktecture.IdentityModel;
-using IdentityServer3.Core;
+using IdSvr3 = IdentityServer3.Core;
 
-namespace IdentityServer3.AspNetIdentity
+namespace YourRootNamespace.IdentityServer3.AspNetIdentity
 {
     public class AspNetIdentityUserService<TUser, TKey> : IUserService
         where TUser : class, IUser<TKey>, new()
@@ -119,8 +119,8 @@ namespace IdentityServer3.AspNetIdentity
         protected virtual async Task<IEnumerable<Claim>> GetClaimsFromAccount(TUser user)
         {
             var claims = new List<Claim>{
-                new Claim(IdentityServer3.Core.Constants.ClaimTypes.Subject, user.Id.ToString()),
-                new Claim(IdentityServer3.Core.Constants.ClaimTypes.PreferredUserName, user.UserName),
+                new Claim(IdSvr3.Constants.ClaimTypes.Subject, user.Id.ToString()),
+                new Claim(IdSvr3.Constants.ClaimTypes.PreferredUserName, user.UserName),
             };
 
             if (userManager.SupportsUserEmail)
@@ -128,9 +128,9 @@ namespace IdentityServer3.AspNetIdentity
                 var email = await userManager.GetEmailAsync(user.Id);
                 if (!String.IsNullOrWhiteSpace(email))
                 {
-                    claims.Add(new Claim(IdentityServer3.Core.Constants.ClaimTypes.Email, email));
+                    claims.Add(new Claim(IdSvr3.Constants.ClaimTypes.Email, email));
                     var verified = await userManager.IsEmailConfirmedAsync(user.Id);
-                    claims.Add(new Claim(IdentityServer3.Core.Constants.ClaimTypes.EmailVerified, verified ? "true" : "false"));
+                    claims.Add(new Claim(IdSvr3.Constants.ClaimTypes.EmailVerified, verified ? "true" : "false"));
                 }
             }
 
@@ -139,9 +139,9 @@ namespace IdentityServer3.AspNetIdentity
                 var phone = await userManager.GetPhoneNumberAsync(user.Id);
                 if (!String.IsNullOrWhiteSpace(phone))
                 {
-                    claims.Add(new Claim(IdentityServer3.Core.Constants.ClaimTypes.PhoneNumber, phone));
+                    claims.Add(new Claim(IdSvr3.Constants.ClaimTypes.PhoneNumber, phone));
                     var verified = await userManager.IsPhoneNumberConfirmedAsync(user.Id);
-                    claims.Add(new Claim(IdentityServer3.Core.Constants.ClaimTypes.PhoneNumberVerified, verified ? "true" : "false"));
+                    claims.Add(new Claim(IdSvr3.Constants.ClaimTypes.PhoneNumberVerified, verified ? "true" : "false"));
                 }
             }
 
@@ -154,7 +154,7 @@ namespace IdentityServer3.AspNetIdentity
             {
                 var roleClaims =
                     from role in await userManager.GetRolesAsync(user.Id)
-                    select new Claim(IdentityServer3.Core.Constants.ClaimTypes.Role, role);
+                    select new Claim(IdSvr3.Constants.ClaimTypes.Role, role);
                 claims.AddRange(roleClaims);
             }
 
@@ -171,7 +171,7 @@ namespace IdentityServer3.AspNetIdentity
             {
                 nameClaim = claims.FirstOrDefault(x => x.Type == DisplayNameClaimType);
             }
-            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == IdentityServer3.Core.Constants.ClaimTypes.Name);
+            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == IdSvr3.Constants.ClaimTypes.Name);
             if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
             if (nameClaim != null) return nameClaim.Value;
             
@@ -312,7 +312,7 @@ namespace IdentityServer3.AspNetIdentity
                 userID.ToString(), 
                 await GetDisplayNameForAccountAsync(userID),
                 claims,
-                authenticationMethod: IdentityServer3.Core.Constants.AuthenticationMethods.External, 
+                authenticationMethod: IdSvr3.Constants.AuthenticationMethods.External, 
                 identityProvider: provider);
         }
 
@@ -341,7 +341,7 @@ namespace IdentityServer3.AspNetIdentity
 
         protected virtual async Task<IEnumerable<Claim>> SetAccountEmailAsync(TKey userID, IEnumerable<Claim> claims)
         {
-            var email = claims.FirstOrDefault(x => x.Type == IdentityServer3.Core.Constants.ClaimTypes.Email);
+            var email = claims.FirstOrDefault(x => x.Type == IdSvr3.Constants.ClaimTypes.Email);
             if (email != null)
             {
                 var userEmail = await userManager.GetEmailAsync(userID);
@@ -352,14 +352,14 @@ namespace IdentityServer3.AspNetIdentity
                     var result = await userManager.SetEmailAsync(userID, email.Value);
                     if (result.Succeeded)
                     {
-                        var email_verified = claims.FirstOrDefault(x => x.Type == IdentityServer3.Core.Constants.ClaimTypes.EmailVerified);
+                        var email_verified = claims.FirstOrDefault(x => x.Type == IdSvr3.Constants.ClaimTypes.EmailVerified);
                         if (email_verified != null && email_verified.Value == "true")
                         {
                             var token = await userManager.GenerateEmailConfirmationTokenAsync(userID);
                             await userManager.ConfirmEmailAsync(userID, token);
                         }
 
-                        var emailClaims = new string[] { IdentityServer3.Core.Constants.ClaimTypes.Email, IdentityServer3.Core.Constants.ClaimTypes.EmailVerified };
+                        var emailClaims = new string[] { IdSvr3.Constants.ClaimTypes.Email, IdSvr3.Constants.ClaimTypes.EmailVerified };
                         return claims.Where(x => !emailClaims.Contains(x.Type));
                     }
                 }
@@ -370,7 +370,7 @@ namespace IdentityServer3.AspNetIdentity
 
         protected virtual async Task<IEnumerable<Claim>> SetAccountPhoneAsync(TKey userID, IEnumerable<Claim> claims)
         {
-            var phone = claims.FirstOrDefault(x=>x.Type==IdentityServer3.Core.Constants.ClaimTypes.PhoneNumber);
+            var phone = claims.FirstOrDefault(x => x.Type == IdSvr3.Constants.ClaimTypes.PhoneNumber);
             if (phone != null)
             {
                 var userPhone = await userManager.GetPhoneNumberAsync(userID);
@@ -381,14 +381,14 @@ namespace IdentityServer3.AspNetIdentity
                     var result = await userManager.SetPhoneNumberAsync(userID, phone.Value);
                     if (result.Succeeded)
                     {
-                        var phone_verified = claims.FirstOrDefault(x => x.Type == IdentityServer3.Core.Constants.ClaimTypes.PhoneNumberVerified);
+                        var phone_verified = claims.FirstOrDefault(x => x.Type == IdSvr3.Constants.ClaimTypes.PhoneNumberVerified);
                         if (phone_verified != null && phone_verified.Value == "true")
                         {
                             var token = await userManager.GenerateChangePhoneNumberTokenAsync(userID, phone.Value);
                             await userManager.ChangePhoneNumberAsync(userID, phone.Value, token);
                         }
 
-                        var phoneClaims = new string[] { IdentityServer3.Core.Constants.ClaimTypes.PhoneNumber, IdentityServer3.Core.Constants.ClaimTypes.PhoneNumberVerified };
+                        var phoneClaims = new string[] { IdSvr3.Constants.ClaimTypes.PhoneNumber, IdSvr3.Constants.ClaimTypes.PhoneNumberVerified };
                         return claims.Where(x => !phoneClaims.Contains(x.Type));
                     }
                 }

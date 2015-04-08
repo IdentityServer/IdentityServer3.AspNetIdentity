@@ -128,9 +128,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AspNetIdentityUserService\AspNetIdentityUserService.csproj">
+    <ProjectReference Include="..\IdentityServer3.AspNetIdentity\IdentityServer3.AspNetIdentity.csproj">
       <Project>{409b7496-b359-40eb-b92b-733f0b1f0088}</Project>
-      <Name>AspNetIdentityUserService</Name>
+      <Name>IdentityServer3.AspNetIdentity</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
