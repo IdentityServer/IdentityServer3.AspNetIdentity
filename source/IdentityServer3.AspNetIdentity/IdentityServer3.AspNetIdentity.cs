@@ -23,8 +23,8 @@ using System.Threading.Tasks;
 using IdentityServer3.Core.Models;
 using IdentityServer3.Core.Services;
 using IdentityServer3.Core.Extensions;
-using Thinktecture.IdentityModel;
 using IdSvr3 = IdentityServer3.Core;
+using IdentityModel;
 
 namespace YourRootNamespace.IdentityServer3.AspNetIdentity
 {
