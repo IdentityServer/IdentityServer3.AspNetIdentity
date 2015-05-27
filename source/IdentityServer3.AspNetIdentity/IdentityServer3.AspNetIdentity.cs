@@ -267,13 +267,18 @@ namespace YourRootNamespace.IdentityServer3.AspNetIdentity
 
         protected virtual async Task<AuthenticateResult> ProcessNewExternalAccountAsync(string provider, string providerId, IEnumerable<Claim> claims)
         {
-            var user = await InstantiateNewUserFromExternalProviderAsync(provider, providerId, claims);
-            if (user == null) throw new InvalidOperationException("CreateNewAccountFromExternalProvider returned null");
-
-            var createResult = await userManager.CreateAsync(user);
-            if (!createResult.Succeeded)
+            var user = await TryGetExistingUserFromExternalProviderClaimsAsync(provider, claims);
+            if (user == null)
             {
-                return new AuthenticateResult(createResult.Errors.First());
+                user = await InstantiateNewUserFromExternalProviderAsync(provider, providerId, claims);
+                if (user == null)
+                    throw new InvalidOperationException("CreateNewAccountFromExternalProvider returned null");
+
+                var createResult = await userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    return new AuthenticateResult(createResult.Errors.First());
+                }
             }
 
             var externalLogin = new UserLoginInfo(provider, providerId);
@@ -293,6 +298,11 @@ namespace YourRootNamespace.IdentityServer3.AspNetIdentity
         {
             var user = new TUser() { UserName = Guid.NewGuid().ToString("N") };
             return Task.FromResult(user);
+        }
+
+        protected virtual Task<TUser> TryGetExistingUserFromExternalProviderClaimsAsync(string provider, IEnumerable<Claim> claims)
+        {
+            return Task.FromResult(null);
         }
 
         protected virtual async Task<AuthenticateResult> AccountCreatedFromExternalProviderAsync(TKey userID, string provider, string providerId, IEnumerable<Claim> claims)
