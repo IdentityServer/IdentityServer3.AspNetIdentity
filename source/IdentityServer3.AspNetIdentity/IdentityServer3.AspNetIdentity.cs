@@ -95,10 +95,11 @@ namespace YourRootNamespace.IdentityServer3.AspNetIdentity
             return key;
         }
         
-        public virtual async Task<IEnumerable<Claim>> GetProfileDataAsync(
-            ClaimsPrincipal subject,
-            IEnumerable<string> requestedClaimTypes = null)
+        public virtual async Task<IEnumerable<Claim>> GetProfileDataAsync(ProfileDataRequestContext ctx)
         {
+            var subject = ctx.Subject;
+            var requestedClaimTypes = ctx.RequestedClaimTypes;
+
             if (subject == null) throw new ArgumentNullException("subject");
 
             TKey key = ConvertSubjectToKey(subject.GetSubjectId());
@@ -178,7 +179,7 @@ namespace YourRootNamespace.IdentityServer3.AspNetIdentity
             return user.UserName;
         }
 
-        public virtual Task<AuthenticateResult> PreAuthenticateAsync(SignInMessage message)
+        public virtual Task<AuthenticateResult> PreAuthenticateAsync(PreAuthenticationContext ctx)
         {
             return Task.FromResult<AuthenticateResult>(null);
         }
@@ -193,8 +194,12 @@ namespace YourRootNamespace.IdentityServer3.AspNetIdentity
             return Task.FromResult<AuthenticateResult>(null);
         }
         
-        public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(string username, string password, SignInMessage message = null)
+        public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(LocalAuthenticationContext ctx)
         {
+            var username = ctx.UserName;
+            var password = ctx.Password;
+            var message = ctx.SignInMessage;
+
             if (!userManager.SupportsUserPassword)
             {
                 return null;
@@ -247,8 +252,11 @@ namespace YourRootNamespace.IdentityServer3.AspNetIdentity
             return claims;
         }
 
-        public virtual async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalIdentity externalUser, SignInMessage message)
+        public virtual async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalAuthenticationContext ctx)
         {
+            var externalUser = ctx.ExternalIdentity;
+            var message = ctx.SignInMessage;
+
             if (externalUser == null)
             {
                 throw new ArgumentNullException("externalUser");
@@ -302,7 +310,7 @@ namespace YourRootNamespace.IdentityServer3.AspNetIdentity
 
         protected virtual Task<TUser> TryGetExistingUserFromExternalProviderClaimsAsync(string provider, IEnumerable<Claim> claims)
         {
-            return Task.FromResult(null);
+            return Task.FromResult<TUser>(null);
         }
 
         protected virtual async Task<AuthenticateResult> AccountCreatedFromExternalProviderAsync(TKey userID, string provider, string providerId, IEnumerable<Claim> claims)
@@ -407,8 +415,10 @@ namespace YourRootNamespace.IdentityServer3.AspNetIdentity
             return claims;
         }
 
-        public virtual async Task<bool> IsActiveAsync(ClaimsPrincipal subject)
+        public virtual async Task<bool> IsActiveAsync(IsActiveContext ctx)
         {
+            var subject = ctx.Subject;
+
             if (subject == null) throw new ArgumentNullException("subject");
 
             var id = subject.GetSubjectId();
@@ -435,7 +445,7 @@ namespace YourRootNamespace.IdentityServer3.AspNetIdentity
             return true;
         }
 
-        public virtual Task SignOutAsync(ClaimsPrincipal subject)
+        public virtual Task SignOutAsync(SignOutContext ctx)
         {
             return Task.FromResult<object>(null);
         }
