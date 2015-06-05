@@ -24,10 +24,11 @@ using IdentityServer3.Core.Services;
 using IdentityServer3.Core.Extensions;
 using IdentityServer3.Core;
 using IdentityModel;
+using IdentityServer3.Core.Services.Default;
 
 namespace IdentityServer3.AspNetIdentity
 {
-    public class AspNetIdentityUserService<TUser, TKey> : IUserService
+    public class AspNetIdentityUserService<TUser, TKey> : UserServiceBase
         where TUser : class, Microsoft.AspNet.Identity.IUser<TKey>, new()
         where TKey : IEquatable<TKey>
     {
@@ -94,7 +95,7 @@ namespace IdentityServer3.AspNetIdentity
             return key;
         }
         
-        public virtual async Task<IEnumerable<Claim>> GetProfileDataAsync(ProfileDataRequestContext ctx)
+        public override async Task<IEnumerable<Claim>> GetProfileDataAsync(ProfileDataRequestContext ctx)
         {
             var subject = ctx.Subject;
             var requestedClaimTypes = ctx.RequestedClaimTypes;
@@ -178,11 +179,6 @@ namespace IdentityServer3.AspNetIdentity
             return user.UserName;
         }
 
-        public virtual Task<AuthenticateResult> PreAuthenticateAsync(PreAuthenticationContext ctx)
-        {
-            return Task.FromResult<AuthenticateResult>(null);
-        }
-
         protected async virtual Task<TUser> FindUserAsync(string username)
         {
             return await userManager.FindByNameAsync(username);
@@ -192,8 +188,8 @@ namespace IdentityServer3.AspNetIdentity
         {
             return Task.FromResult<AuthenticateResult>(null);
         }
-        
-        public virtual async Task<AuthenticateResult> AuthenticateLocalAsync(LocalAuthenticationContext ctx)
+
+        public override async Task<AuthenticateResult> AuthenticateLocalAsync(LocalAuthenticationContext ctx)
         {
             var username = ctx.UserName;
             var password = ctx.Password;
@@ -251,7 +247,7 @@ namespace IdentityServer3.AspNetIdentity
             return claims;
         }
 
-        public virtual async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalAuthenticationContext ctx)
+        public override async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalAuthenticationContext ctx)
         {
             var externalUser = ctx.ExternalIdentity;
             var message = ctx.SignInMessage;
@@ -414,7 +410,7 @@ namespace IdentityServer3.AspNetIdentity
             return claims;
         }
 
-        public virtual async Task<bool> IsActiveAsync(IsActiveContext ctx)
+        public override async Task<bool> IsActiveAsync(IsActiveContext ctx)
         {
             var subject = ctx.Subject;
 
@@ -442,11 +438,6 @@ namespace IdentityServer3.AspNetIdentity
             }
             
             return true;
-        }
-
-        public virtual Task SignOutAsync(SignOutContext ctx)
-        {
-            return Task.FromResult<object>(null);
         }
     }
 }
