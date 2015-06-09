@@ -95,7 +95,7 @@ namespace IdentityServer3.AspNetIdentity
             return key;
         }
         
-        public override async Task<IEnumerable<Claim>> GetProfileDataAsync(ProfileDataRequestContext ctx)
+        public override async Task GetProfileDataAsync(ProfileDataRequestContext ctx)
         {
             var subject = ctx.Subject;
             var requestedClaimTypes = ctx.RequestedClaimTypes;
@@ -114,7 +114,8 @@ namespace IdentityServer3.AspNetIdentity
             {
                 claims = claims.Where(x => requestedClaimTypes.Contains(x.Type));
             }
-            return claims;
+            
+            ctx.IssuedClaims = claims;
         }
 
         protected virtual async Task<IEnumerable<Claim>> GetClaimsFromAccount(TUser user)
@@ -189,48 +190,47 @@ namespace IdentityServer3.AspNetIdentity
             return Task.FromResult<AuthenticateResult>(null);
         }
 
-        public override async Task<AuthenticateResult> AuthenticateLocalAsync(LocalAuthenticationContext ctx)
+        public override async Task AuthenticateLocalAsync(LocalAuthenticationContext ctx)
         {
             var username = ctx.UserName;
             var password = ctx.Password;
             var message = ctx.SignInMessage;
 
-            if (!userManager.SupportsUserPassword)
-            {
-                return null;
-            }
+            ctx.AuthenticateResult = null;
 
-            var user = await FindUserAsync(username);
-            if (user == null)
+            if (userManager.SupportsUserPassword)
             {
-                return null;
-            }
-
-            if (userManager.SupportsUserLockout &&
-                await userManager.IsLockedOutAsync(user.Id))
-            {
-                return null;
-            }
-
-            if (await userManager.CheckPasswordAsync(user, password))
-            {
-                if (userManager.SupportsUserLockout)
+                var user = await FindUserAsync(username);
+                if (user != null)
                 {
-                    await userManager.ResetAccessFailedCountAsync(user.Id);
+                    if (userManager.SupportsUserLockout &&
+                        await userManager.IsLockedOutAsync(user.Id))
+                    {
+                        return;
+                    }
+
+                    if (await userManager.CheckPasswordAsync(user, password))
+                    {
+                        if (userManager.SupportsUserLockout)
+                        {
+                            await userManager.ResetAccessFailedCountAsync(user.Id);
+                        }
+
+                        var result = await PostAuthenticateLocalAsync(user, message);
+                        if (result == null)
+                        {
+                            var claims = await GetClaimsForAuthenticateResult(user);
+                            result = new AuthenticateResult(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id), claims);
+                        }
+                        
+                        ctx.AuthenticateResult = result;
+                    }
+                    else if (userManager.SupportsUserLockout)
+                    {
+                        await userManager.AccessFailedAsync(user.Id);
+                    }
                 }
-
-                var result = await PostAuthenticateLocalAsync(user, message);
-                if (result != null) return result;
-
-                var claims = await GetClaimsForAuthenticateResult(user);
-                return new AuthenticateResult(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id), claims);
             }
-            else if (userManager.SupportsUserLockout)
-            {
-                await userManager.AccessFailedAsync(user.Id);
-            }
-
-            return null;
         }
 
         protected virtual async Task<IEnumerable<Claim>> GetClaimsForAuthenticateResult(TUser user)
@@ -247,7 +247,7 @@ namespace IdentityServer3.AspNetIdentity
             return claims;
         }
 
-        public override async Task<AuthenticateResult> AuthenticateExternalAsync(ExternalAuthenticationContext ctx)
+        public override async Task AuthenticateExternalAsync(ExternalAuthenticationContext ctx)
         {
             var externalUser = ctx.ExternalIdentity;
             var message = ctx.SignInMessage;
@@ -260,11 +260,11 @@ namespace IdentityServer3.AspNetIdentity
             var user = await userManager.FindAsync(new Microsoft.AspNet.Identity.UserLoginInfo(externalUser.Provider, externalUser.ProviderId));
             if (user == null)
             {
-                return await ProcessNewExternalAccountAsync(externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
+                ctx.AuthenticateResult = await ProcessNewExternalAccountAsync(externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
             }
             else
             {
-                return await ProcessExistingExternalAccountAsync(user.Id, externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
+                ctx.AuthenticateResult = await ProcessExistingExternalAccountAsync(user.Id, externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
             }
         }
 
@@ -410,7 +410,7 @@ namespace IdentityServer3.AspNetIdentity
             return claims;
         }
 
-        public override async Task<bool> IsActiveAsync(IsActiveContext ctx)
+        public override async Task IsActiveAsync(IsActiveContext ctx)
         {
             var subject = ctx.Subject;
 
@@ -419,25 +419,26 @@ namespace IdentityServer3.AspNetIdentity
             var id = subject.GetSubjectId();
             TKey key = ConvertSubjectToKey(id);
             var acct = await userManager.FindByIdAsync(key);
-            if (acct == null)
-            {
-                return false;
-            }
 
-            if (EnableSecurityStamp && userManager.SupportsUserSecurityStamp)
+            ctx.IsActive = false;
+
+            if (acct != null)
             {
-                var security_stamp = subject.Claims.Where(x => x.Type == "security_stamp").Select(x => x.Value).SingleOrDefault();
-                if (security_stamp != null)
+                if (EnableSecurityStamp && userManager.SupportsUserSecurityStamp)
                 {
-                    var db_security_stamp = await userManager.GetSecurityStampAsync(key);
-                    if (db_security_stamp != security_stamp)
+                    var security_stamp = subject.Claims.Where(x => x.Type == "security_stamp").Select(x => x.Value).SingleOrDefault();
+                    if (security_stamp != null)
                     {
-                        return false;
+                        var db_security_stamp = await userManager.GetSecurityStampAsync(key);
+                        if (db_security_stamp != security_stamp)
+                        {
+                            return;
+                        }
                     }
                 }
+
+                ctx.IsActive = true;
             }
-            
-            return true;
         }
     }
 }

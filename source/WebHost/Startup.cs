@@ -1,7 +1,4 @@
-﻿using Microsoft.Owin.Security.Facebook;
-using Microsoft.Owin.Security.Google;
-using Microsoft.Owin.Security.Twitter;
-/*
+﻿/*
  * Copyright 2014 Dominick Baier, Brock Allen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +14,30 @@ using Microsoft.Owin.Security.Twitter;
  * limitations under the License.
  */
 using Owin;
-using SelfHost.IdSvr;
+using WebHost.IdSvr;
 using IdentityManager;
 using IdentityManager.Configuration;
 using IdentityServer3.Core.Configuration;
-using SelfHost.IdMgr;
+using Microsoft.Owin.Security.Facebook;
+using Microsoft.Owin.Security.Google;
+using Microsoft.Owin.Security.Twitter;
+using WebHost.IdMgr;
+using Serilog;
+using IdentityManager.Core.Logging;
+using IdentityManager.Logging;
 
-namespace SelfHost
+namespace WebHost
 {
     internal class Startup
     {
         public void Configuration(IAppBuilder app)
         {
+            LogProvider.SetCurrentLogProvider(new DiagnosticsTraceLogProvider());
+            Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Debug()
+               .WriteTo.Trace()
+               .CreateLogger();
+            
             app.Map("/admin", adminApp =>
             {
                 var factory = new IdentityManagerServiceFactory();
@@ -41,22 +50,25 @@ namespace SelfHost
                 });
             });
 
-            var idSvrFactory = Factory.Configure();
-            idSvrFactory.ConfigureUserService("AspId");
-            //idSvrFactory.ConfigureCustomUserService("AspId_CustomPK");
-
-            var options = new IdentityServerOptions
+            app.Map("/core", core =>
             {
-                SiteName = "IdentityServer3 - UserService-AspNetIdentity",
-                SigningCertificate = Certificate.Get(),
-                Factory = idSvrFactory,
-                AuthenticationOptions = new AuthenticationOptions
-                {
-                    IdentityProviders = ConfigureAdditionalIdentityProviders,
-                }
-            };
+                var idSvrFactory = Factory.Configure();
+                idSvrFactory.ConfigureUserService("AspId");
+                //idSvrFactory.ConfigureCustomUserService("AspId_CustomPK");
 
-            app.UseIdentityServer(options);
+                var options = new IdentityServerOptions
+                {
+                    SiteName = "IdentityServer3 - UserService-AspNetIdentity",
+                    SigningCertificate = Certificate.Get(),
+                    Factory = idSvrFactory,
+                    AuthenticationOptions = new AuthenticationOptions
+                    {
+                        IdentityProviders = ConfigureAdditionalIdentityProviders,
+                    }
+                };
+
+                core.UseIdentityServer(options);
+            });
         }
 
         public static void ConfigureAdditionalIdentityProviders(IAppBuilder app, string signInAsType)

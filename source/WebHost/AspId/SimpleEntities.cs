@@ -21,7 +21,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Web;
 
-namespace SelfHost.AspId
+namespace WebHost.AspId
 {
     public class User : IdentityUser
     {

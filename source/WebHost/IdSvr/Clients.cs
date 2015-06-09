@@ -18,7 +18,7 @@ using System.Security.Claims;
 using IdentityServer3.Core;
 using IdentityServer3.Core.Models;
 
-namespace SelfHost.IdSvr
+namespace WebHost.IdSvr
 {
     public class Clients
     {
