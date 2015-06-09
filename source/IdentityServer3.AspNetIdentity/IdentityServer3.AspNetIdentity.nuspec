@@ -17,9 +17,9 @@
     <tags>IdentityServer OpenID Connect OpenIDConnect OAuth2 OWIN ASP.NET Katana WebApi SSO Federation Claims Identity AspNetIdentity</tags>
 
     <dependencies>
-      <dependency id="IdentityServer3" version="2.0.0-build00019"  />
+      <dependency id="IdentityServer3" version="2.0.0-build00102"  />
       <dependency id="Microsoft.AspNet.Identity.Core" version="2.1.0" />
-      <dependency id="IdentityModel" version="1.0.0" />
+      <dependency id="IdentityModel" version="1.0.0-build00006" />
     </dependencies>
   </metadata>
   <files>
