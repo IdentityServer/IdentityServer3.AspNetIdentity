@@ -19,27 +19,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using IdentityServer3.Core.Models;
-using IdentityServer3.Core.Services;
-using IdentityServer3.Core.Extensions;
-using IdentityServer3.Core;
 using IdentityModel;
+using IdentityServer3.Core.Extensions;
+using IdentityServer3.Core.Models;
 using IdentityServer3.Core.Services.Default;
+using Microsoft.AspNet.Identity;
+using Constants = IdentityServer3.Core.Constants;
 
 namespace IdentityServer3.AspNetIdentity
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TUser"></typeparam>
+    /// <typeparam name="TKey"></typeparam>
     public class AspNetIdentityUserService<TUser, TKey> : UserServiceBase
-        where TUser : class, Microsoft.AspNet.Identity.IUser<TKey>, new()
+        where TUser : class, IUser<TKey>, new()
         where TKey : IEquatable<TKey>
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public string DisplayNameClaimType { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public bool EnableSecurityStamp { get; set; }
 
-        protected readonly Microsoft.AspNet.Identity.UserManager<TUser, TKey> userManager;
+        /// <summary>
+        /// 
+        /// </summary>
+        protected readonly UserManager<TUser, TKey> userManager;
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected readonly Func<string, TKey> ConvertSubjectToKey;
-        
-        public AspNetIdentityUserService(Microsoft.AspNet.Identity.UserManager<TUser, TKey> userManager, Func<string, TKey> parseSubject = null)
+
+        /// <summary>
+        /// </summary>
+        /// <param name="userManager"></param>
+        /// <param name="parseSubject"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="userManager"/> is <see langword="null" />.</exception>
+        /// <exception cref="InvalidOperationException">Key type not supported</exception>
+        public AspNetIdentityUserService(UserManager<TUser, TKey> userManager, Func<string, TKey> parseSubject = null)
         {
             if (userManager == null) throw new ArgumentNullException("userManager");
             
@@ -66,35 +90,70 @@ namespace IdentityServer3.AspNetIdentity
             EnableSecurityStamp = true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sub"></param>
+        /// <returns></returns>
         object ParseString(string sub)
         {
             return sub;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sub"></param>
+        /// <returns></returns>
         object ParseInt(string sub)
         {
             int key;
             if (!Int32.TryParse(sub, out key)) return 0;
             return key;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sub"></param>
+        /// <returns></returns>
         object ParseUInt32(string sub)
         {
             uint key;
             if (!UInt32.TryParse(sub, out key)) return 0;
             return key;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sub"></param>
+        /// <returns></returns>
         object ParseLong(string sub)
         {
             long key;
             if (!Int64.TryParse(sub, out key)) return 0;
             return key;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sub"></param>
+        /// <returns></returns>
         object ParseGuid(string sub)
         {
             Guid key;
             if (!Guid.TryParse(sub, out key)) return Guid.Empty;
             return key;
         }
-        
+
+        /// <summary>
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="subject"/> is <see langword="null" />.</exception>
+        /// <exception cref="ArgumentException">Invalid subject identifier</exception>
         public override async Task GetProfileDataAsync(ProfileDataRequestContext ctx)
         {
             var subject = ctx.Subject;
@@ -118,6 +177,11 @@ namespace IdentityServer3.AspNetIdentity
             ctx.IssuedClaims = claims;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         protected virtual async Task<IEnumerable<Claim>> GetClaimsFromAccount(TUser user)
         {
             var claims = new List<Claim>{
@@ -163,6 +227,11 @@ namespace IdentityServer3.AspNetIdentity
             return claims;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
         protected virtual async Task<string> GetDisplayNameForAccountAsync(TKey userID)
         {
             var user = await userManager.FindByIdAsync(userID);
@@ -180,16 +249,32 @@ namespace IdentityServer3.AspNetIdentity
             return user.UserName;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
         protected async virtual Task<TUser> FindUserAsync(string username)
         {
             return await userManager.FindByNameAsync(username);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
         protected virtual Task<AuthenticateResult> PostAuthenticateLocalAsync(TUser user, SignInMessage message)
         {
             return Task.FromResult<AuthenticateResult>(null);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
         public override async Task AuthenticateLocalAsync(LocalAuthenticationContext ctx)
         {
             var username = ctx.UserName;
@@ -233,6 +318,11 @@ namespace IdentityServer3.AspNetIdentity
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         protected virtual async Task<IEnumerable<Claim>> GetClaimsForAuthenticateResult(TUser user)
         {
             List<Claim> claims = new List<Claim>();
@@ -247,6 +337,11 @@ namespace IdentityServer3.AspNetIdentity
             return claims;
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="externalUser"/> is <see langword="null" />.</exception>
         public override async Task AuthenticateExternalAsync(ExternalAuthenticationContext ctx)
         {
             var externalUser = ctx.ExternalIdentity;
@@ -257,7 +352,7 @@ namespace IdentityServer3.AspNetIdentity
                 throw new ArgumentNullException("externalUser");
             }
 
-            var user = await userManager.FindAsync(new Microsoft.AspNet.Identity.UserLoginInfo(externalUser.Provider, externalUser.ProviderId));
+            var user = await userManager.FindAsync(new UserLoginInfo(externalUser.Provider, externalUser.ProviderId));
             if (user == null)
             {
                 ctx.AuthenticateResult = await ProcessNewExternalAccountAsync(externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
@@ -268,6 +363,13 @@ namespace IdentityServer3.AspNetIdentity
             }
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="provider"></param>
+        /// <param name="providerId"></param>
+        /// <param name="claims"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">CreateNewAccountFromExternalProvider returned null</exception>
         protected virtual async Task<AuthenticateResult> ProcessNewExternalAccountAsync(string provider, string providerId, IEnumerable<Claim> claims)
         {
             var user = await TryGetExistingUserFromExternalProviderClaimsAsync(provider, claims);
@@ -284,7 +386,7 @@ namespace IdentityServer3.AspNetIdentity
                 }
             }
 
-            var externalLogin = new Microsoft.AspNet.Identity.UserLoginInfo(provider, providerId);
+            var externalLogin = new UserLoginInfo(provider, providerId);
             var addExternalResult = await userManager.AddLoginAsync(user.Id, externalLogin);
             if (!addExternalResult.Succeeded)
             {
@@ -297,17 +399,38 @@ namespace IdentityServer3.AspNetIdentity
             return await SignInFromExternalProviderAsync(user.Id, provider);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="provider"></param>
+        /// <param name="providerId"></param>
+        /// <param name="claims"></param>
+        /// <returns></returns>
         protected virtual Task<TUser> InstantiateNewUserFromExternalProviderAsync(string provider, string providerId, IEnumerable<Claim> claims)
         {
-            var user = new TUser() { UserName = Guid.NewGuid().ToString("N") };
+            var user = new TUser { UserName = Guid.NewGuid().ToString("N") };
             return Task.FromResult(user);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="provider"></param>
+        /// <param name="claims"></param>
+        /// <returns></returns>
         protected virtual Task<TUser> TryGetExistingUserFromExternalProviderClaimsAsync(string provider, IEnumerable<Claim> claims)
         {
             return Task.FromResult<TUser>(null);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="provider"></param>
+        /// <param name="providerId"></param>
+        /// <param name="claims"></param>
+        /// <returns></returns>
         protected virtual async Task<AuthenticateResult> AccountCreatedFromExternalProviderAsync(TKey userID, string provider, string providerId, IEnumerable<Claim> claims)
         {
             claims = await SetAccountEmailAsync(userID, claims);
@@ -316,6 +439,12 @@ namespace IdentityServer3.AspNetIdentity
             return await UpdateAccountFromExternalClaimsAsync(userID, provider, providerId, claims);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="provider"></param>
+        /// <returns></returns>
         protected virtual async Task<AuthenticateResult> SignInFromExternalProviderAsync(TKey userID, string provider)
         {
             var user = await userManager.FindByIdAsync(userID);
@@ -329,6 +458,14 @@ namespace IdentityServer3.AspNetIdentity
                 identityProvider: provider);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="provider"></param>
+        /// <param name="providerId"></param>
+        /// <param name="claims"></param>
+        /// <returns></returns>
         protected virtual async Task<AuthenticateResult> UpdateAccountFromExternalClaimsAsync(TKey userID, string provider, string providerId, IEnumerable<Claim> claims)
         {
             var existingClaims = await userManager.GetClaimsAsync(userID);
@@ -347,11 +484,25 @@ namespace IdentityServer3.AspNetIdentity
             return null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="provider"></param>
+        /// <param name="providerId"></param>
+        /// <param name="claims"></param>
+        /// <returns></returns>
         protected virtual async Task<AuthenticateResult> ProcessExistingExternalAccountAsync(TKey userID, string provider, string providerId, IEnumerable<Claim> claims)
         {
             return await SignInFromExternalProviderAsync(userID, provider);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="claims"></param>
+        /// <returns></returns>
         protected virtual async Task<IEnumerable<Claim>> SetAccountEmailAsync(TKey userID, IEnumerable<Claim> claims)
         {
             var email = claims.FirstOrDefault(x => x.Type == Constants.ClaimTypes.Email);
@@ -372,7 +523,7 @@ namespace IdentityServer3.AspNetIdentity
                             await userManager.ConfirmEmailAsync(userID, token);
                         }
 
-                        var emailClaims = new string[] { Constants.ClaimTypes.Email, Constants.ClaimTypes.EmailVerified };
+                        var emailClaims = new[] { Constants.ClaimTypes.Email, Constants.ClaimTypes.EmailVerified };
                         return claims.Where(x => !emailClaims.Contains(x.Type));
                     }
                 }
@@ -381,6 +532,12 @@ namespace IdentityServer3.AspNetIdentity
             return claims;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="claims"></param>
+        /// <returns></returns>
         protected virtual async Task<IEnumerable<Claim>> SetAccountPhoneAsync(TKey userID, IEnumerable<Claim> claims)
         {
             var phone = claims.FirstOrDefault(x => x.Type == Constants.ClaimTypes.PhoneNumber);
@@ -401,7 +558,7 @@ namespace IdentityServer3.AspNetIdentity
                             await userManager.ChangePhoneNumberAsync(userID, phone.Value, token);
                         }
 
-                        var phoneClaims = new string[] { Constants.ClaimTypes.PhoneNumber, Constants.ClaimTypes.PhoneNumberVerified };
+                        var phoneClaims = new[] { Constants.ClaimTypes.PhoneNumber, Constants.ClaimTypes.PhoneNumberVerified };
                         return claims.Where(x => !phoneClaims.Contains(x.Type));
                     }
                 }
@@ -410,6 +567,11 @@ namespace IdentityServer3.AspNetIdentity
             return claims;
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="subject"/> is <see langword="null" />.</exception>
         public override async Task IsActiveAsync(IsActiveContext ctx)
         {
             var subject = ctx.Subject;
