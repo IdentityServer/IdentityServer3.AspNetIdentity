@@ -109,7 +109,7 @@ namespace IdentityServer3.AspNetIdentity
                 throw new ArgumentException("Invalid subject identifier");
             }
 
-            var claims = await GetClaimsFromAccount(acct);
+            var claims = await GetClaimsFromAccountAsync(acct);
             if (requestedClaimTypes != null && requestedClaimTypes.Any())
             {
                 claims = claims.Where(x => requestedClaimTypes.Contains(x.Type));
@@ -118,7 +118,7 @@ namespace IdentityServer3.AspNetIdentity
             ctx.IssuedClaims = claims;
         }
 
-        protected virtual async Task<IEnumerable<Claim>> GetClaimsFromAccount(TUser user)
+        protected virtual async Task<IEnumerable<Claim>> GetClaimsFromAccountAsync(TUser user)
         {
             var claims = new List<Claim>{
                 new Claim(Constants.ClaimTypes.Subject, user.Id.ToString()),
@@ -166,7 +166,7 @@ namespace IdentityServer3.AspNetIdentity
         protected virtual async Task<string> GetDisplayNameForAccountAsync(TKey userID)
         {
             var user = await userManager.FindByIdAsync(userID);
-            var claims = await GetClaimsFromAccount(user);
+            var claims = await GetClaimsFromAccountAsync(user);
 
             Claim nameClaim = null;
             if (DisplayNameClaimType != null)
@@ -219,7 +219,7 @@ namespace IdentityServer3.AspNetIdentity
                         var result = await PostAuthenticateLocalAsync(user, message);
                         if (result == null)
                         {
-                            var claims = await GetClaimsForAuthenticateResult(user);
+                            var claims = await GetClaimsForAuthenticateResultAsync(user);
                             result = new AuthenticateResult(user.Id.ToString(), await GetDisplayNameForAccountAsync(user.Id), claims);
                         }
                         
@@ -233,7 +233,7 @@ namespace IdentityServer3.AspNetIdentity
             }
         }
 
-        protected virtual async Task<IEnumerable<Claim>> GetClaimsForAuthenticateResult(TUser user)
+        protected virtual async Task<IEnumerable<Claim>> GetClaimsForAuthenticateResultAsync(TUser user)
         {
             List<Claim> claims = new List<Claim>();
             if (EnableSecurityStamp && userManager.SupportsUserSecurityStamp)
@@ -319,7 +319,7 @@ namespace IdentityServer3.AspNetIdentity
         protected virtual async Task<AuthenticateResult> SignInFromExternalProviderAsync(TKey userID, string provider)
         {
             var user = await userManager.FindByIdAsync(userID);
-            var claims = await GetClaimsForAuthenticateResult(user);
+            var claims = await GetClaimsForAuthenticateResultAsync(user);
 
             return new AuthenticateResult(
                 userID.ToString(), 
