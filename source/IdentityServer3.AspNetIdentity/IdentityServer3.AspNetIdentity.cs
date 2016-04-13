@@ -180,7 +180,7 @@ namespace IdentityServer3.AspNetIdentity
             return user.UserName;
         }
 
-        protected async virtual Task<TUser> FindUserAsync(string username)
+        protected virtual async Task<TUser> FindUserAsync(string username)
         {
             return await userManager.FindByNameAsync(username);
         }
