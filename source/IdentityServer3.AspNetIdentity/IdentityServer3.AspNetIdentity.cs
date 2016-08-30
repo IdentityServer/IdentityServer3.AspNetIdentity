@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -45,56 +46,23 @@ namespace IdentityServer3.AspNetIdentity
             
             this.userManager = userManager;
 
-            if (parseSubject != null)
-            {
-                ConvertSubjectToKey = parseSubject;
-            }
-            else
-            {
-                var keyType = typeof (TKey);
-                if (keyType == typeof (string)) ConvertSubjectToKey = subject => (TKey) ParseString(subject);
-                else if (keyType == typeof (int)) ConvertSubjectToKey = subject => (TKey) ParseInt(subject);
-                else if (keyType == typeof (uint)) ConvertSubjectToKey = subject => (TKey) ParseUInt32(subject);
-                else if (keyType == typeof (long)) ConvertSubjectToKey = subject => (TKey) ParseLong(subject);
-                else if (keyType == typeof (Guid)) ConvertSubjectToKey = subject => (TKey) ParseGuid(subject);
-                else
-                {
-                    throw new InvalidOperationException("Key type not supported");
-                }
-            }
+            ConvertSubjectToKey = parseSubject ?? DefaultParseSubject;
 
             EnableSecurityStamp = true;
         }
 
-        object ParseString(string sub)
+        static TKey DefaultParseSubject(string sub)
         {
-            return sub;
+            try
+            {
+                return (TKey)TypeDescriptor.GetConverter(typeof(TKey)).ConvertFromString(sub);
+            }
+            catch
+            {
+                return default(TKey);
+            }
         }
-        object ParseInt(string sub)
-        {
-            int key;
-            if (!Int32.TryParse(sub, out key)) return 0;
-            return key;
-        }
-        object ParseUInt32(string sub)
-        {
-            uint key;
-            if (!UInt32.TryParse(sub, out key)) return 0;
-            return key;
-        }
-        object ParseLong(string sub)
-        {
-            long key;
-            if (!Int64.TryParse(sub, out key)) return 0;
-            return key;
-        }
-        object ParseGuid(string sub)
-        {
-            Guid key;
-            if (!Guid.TryParse(sub, out key)) return Guid.Empty;
-            return key;
-        }
-        
+
         public override async Task GetProfileDataAsync(ProfileDataRequestContext ctx)
         {
             var subject = ctx.Subject;
