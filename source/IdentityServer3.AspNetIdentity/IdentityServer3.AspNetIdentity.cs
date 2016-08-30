@@ -167,17 +167,10 @@ namespace IdentityServer3.AspNetIdentity
         {
             var user = await userManager.FindByIdAsync(userID);
             var claims = await GetClaimsFromAccount(user);
-
-            Claim nameClaim = null;
-            if (DisplayNameClaimType != null)
-            {
-                nameClaim = claims.FirstOrDefault(x => x.Type == DisplayNameClaimType);
-            }
-            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == Constants.ClaimTypes.Name);
-            if (nameClaim == null) nameClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
-            if (nameClaim != null) return nameClaim.Value;
-            
-            return user.UserName;
+            return (DisplayNameClaimType != null ? claims.Where(x => x.Type == DisplayNameClaimType).Select(x => x.Value).FirstOrDefault() : null)
+                ?? claims.Where(x => x.Type == Constants.ClaimTypes.Name).Select(x => x.Value).FirstOrDefault()
+                ?? claims.Where(x => x.Type == ClaimTypes.Name).Select(x => x.Value).FirstOrDefault()
+                ?? user.UserName;
         }
 
         protected async virtual Task<TUser> FindUserAsync(string username)
