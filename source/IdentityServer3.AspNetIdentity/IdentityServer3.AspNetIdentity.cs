@@ -103,13 +103,13 @@ namespace IdentityServer3.AspNetIdentity
             if (subject == null) throw new ArgumentNullException("subject");
 
             TKey key = ConvertSubjectToKey(subject.GetSubjectId());
-            var acct = await userManager.FindByIdAsync(key);
-            if (acct == null)
+            var user = await userManager.FindByIdAsync(key);
+            if (user == null)
             {
                 throw new ArgumentException("Invalid subject identifier");
             }
 
-            var claims = await GetClaimsFromAccount(acct);
+            var claims = await GetClaimsFromAccount(user);
             if (requestedClaimTypes != null && requestedClaimTypes.Any())
             {
                 claims = claims.Where(x => requestedClaimTypes.Contains(x.Type));
@@ -238,10 +238,10 @@ namespace IdentityServer3.AspNetIdentity
             List<Claim> claims = new List<Claim>();
             if (EnableSecurityStamp && userManager.SupportsUserSecurityStamp)
             {
-                var stamp = await userManager.GetSecurityStampAsync(user.Id);
-                if (!String.IsNullOrWhiteSpace(stamp))
+                var securityStamp = await userManager.GetSecurityStampAsync(user.Id);
+                if (!String.IsNullOrWhiteSpace(securityStamp))
                 {
-                    claims.Add(new Claim("security_stamp", stamp));
+                    claims.Add(new Claim("security_stamp", securityStamp));
                 }
             }
             return claims;
@@ -249,22 +249,22 @@ namespace IdentityServer3.AspNetIdentity
 
         public override async Task AuthenticateExternalAsync(ExternalAuthenticationContext ctx)
         {
-            var externalUser = ctx.ExternalIdentity;
+            var externalIdentity = ctx.ExternalIdentity;
             var message = ctx.SignInMessage;
 
-            if (externalUser == null)
+            if (externalIdentity == null)
             {
-                throw new ArgumentNullException("externalUser");
+                throw new ArgumentNullException("externalIdentity");
             }
 
-            var user = await userManager.FindAsync(new Microsoft.AspNet.Identity.UserLoginInfo(externalUser.Provider, externalUser.ProviderId));
+            var user = await userManager.FindAsync(new Microsoft.AspNet.Identity.UserLoginInfo(externalIdentity.Provider, externalIdentity.ProviderId));
             if (user == null)
             {
-                ctx.AuthenticateResult = await ProcessNewExternalAccountAsync(externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
+                ctx.AuthenticateResult = await ProcessNewExternalAccountAsync(externalIdentity.Provider, externalIdentity.ProviderId, externalIdentity.Claims);
             }
             else
             {
-                ctx.AuthenticateResult = await ProcessExistingExternalAccountAsync(user.Id, externalUser.Provider, externalUser.ProviderId, externalUser.Claims);
+                ctx.AuthenticateResult = await ProcessExistingExternalAccountAsync(user.Id, externalIdentity.Provider, externalIdentity.ProviderId, externalIdentity.Claims);
             }
         }
 
@@ -275,7 +275,7 @@ namespace IdentityServer3.AspNetIdentity
             {
                 user = await InstantiateNewUserFromExternalProviderAsync(provider, providerId, claims);
                 if (user == null)
-                    throw new InvalidOperationException("CreateNewAccountFromExternalProvider returned null");
+                    throw new InvalidOperationException("InstantiateNewUserFromExternalProviderAsync returned null");
 
                 var createResult = await userManager.CreateAsync(user);
                 if (!createResult.Succeeded)
@@ -365,8 +365,8 @@ namespace IdentityServer3.AspNetIdentity
                     var result = await userManager.SetEmailAsync(userID, email.Value);
                     if (result.Succeeded)
                     {
-                        var email_verified = claims.FirstOrDefault(x => x.Type == Constants.ClaimTypes.EmailVerified);
-                        if (email_verified != null && email_verified.Value == "true")
+                        var emailVerifiedClaim = claims.FirstOrDefault(x => x.Type == Constants.ClaimTypes.EmailVerified);
+                        if (emailVerifiedClaim != null && emailVerifiedClaim.Value == "true")
                         {
                             var token = await userManager.GenerateEmailConfirmationTokenAsync(userID);
                             await userManager.ConfirmEmailAsync(userID, token);
@@ -394,8 +394,8 @@ namespace IdentityServer3.AspNetIdentity
                     var result = await userManager.SetPhoneNumberAsync(userID, phone.Value);
                     if (result.Succeeded)
                     {
-                        var phone_verified = claims.FirstOrDefault(x => x.Type == Constants.ClaimTypes.PhoneNumberVerified);
-                        if (phone_verified != null && phone_verified.Value == "true")
+                        var phoneVerifiedClaim = claims.FirstOrDefault(x => x.Type == Constants.ClaimTypes.PhoneNumberVerified);
+                        if (phoneVerifiedClaim != null && phoneVerifiedClaim.Value == "true")
                         {
                             var token = await userManager.GenerateChangePhoneNumberTokenAsync(userID, phone.Value);
                             await userManager.ChangePhoneNumberAsync(userID, phone.Value, token);
@@ -418,19 +418,19 @@ namespace IdentityServer3.AspNetIdentity
 
             var id = subject.GetSubjectId();
             TKey key = ConvertSubjectToKey(id);
-            var acct = await userManager.FindByIdAsync(key);
+            var user = await userManager.FindByIdAsync(key);
 
             ctx.IsActive = false;
 
-            if (acct != null)
+            if (user != null)
             {
                 if (EnableSecurityStamp && userManager.SupportsUserSecurityStamp)
                 {
-                    var security_stamp = subject.Claims.Where(x => x.Type == "security_stamp").Select(x => x.Value).SingleOrDefault();
-                    if (security_stamp != null)
+                    var securityStampFromClaims = subject.Claims.Where(x => x.Type == "security_stamp").Select(x => x.Value).SingleOrDefault();
+                    if (securityStampFromClaims != null)
                     {
-                        var db_security_stamp = await userManager.GetSecurityStampAsync(key);
-                        if (db_security_stamp != security_stamp)
+                        var securityStamp = await userManager.GetSecurityStampAsync(key);
+                        if (securityStamp != securityStampFromClaims)
                         {
                             return;
                         }
